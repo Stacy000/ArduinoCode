@@ -35,7 +35,7 @@ void setup()
 void loop() {
 
   // Put your main code here, to run repeatedly:
-  if(state==0)
+  if(state == 0)
   {
     DisplayMaterialSelection();
 
@@ -56,7 +56,6 @@ void loop() {
 
   if(state == 1)
   {
-    DisplayTemperature();
     ClearLCD();
     lcd.setCursor(1,0);
     lcd.print("YOU HAVE SELECTED");
@@ -85,5 +84,18 @@ void loop() {
       lcd.print("Nothing");
     }
     delay(5000);
+    state = 2;
+  }
+
+  if(state==2)
+  {
+    ClearLCD();
+    lcd.setCursor(0, 0);
+    lcd.print("heating...");
+
+    float temp= GetTemperature();
+    lcd.setCursor(0, 1);
+    lcd.print(temp);
+    delay(1000);
   }
 }
