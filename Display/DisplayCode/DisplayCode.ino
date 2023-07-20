@@ -1,5 +1,7 @@
+#include <Timer.h>
 // Libraries
 #include <LiquidCrystal_I2C.h>
+#include <Wire.h>
 
 // Define pins
 #define encoderCLK 3 //Interrupt pin
@@ -18,12 +20,6 @@ bool selectPETE =false;
 bool selectNext = false;
 
 int state = 0;
-
-// Status for rotary encoder
-//int CLKNow;
-//int CLKPrev;
-int DTNow;
-int DTPrev;
 
 bool refreshLCD = true;
 bool refreshSelection = false;
@@ -148,7 +144,7 @@ void updateCursorPosition()
   }
 }
 
-// This function is triggered when the CLK signal from the encoder is changed
+// This function is triggered when the CLK signal from the encoder is at its falling edge
 void rotate()
 {
   //Serial.print("FALLING");
@@ -162,30 +158,20 @@ void rotate()
   {
     // COUNTER CLOCKWISE
     case 0: 
-   // Serial.print("LOW");
     menuCounter--;
-    //Serial.print(menuCounter);
     if(menuCounter < 0)
     {
       menuCounter = 4;
-      //Serial.print(menuCounter);
     }     
-    //Serial.print(menuCounter);
-    //Serial.print("\n");
     break;
     
     // CLOCKWISE
     case 1: 
-    //Serial.print("HIGH");
     menuCounter++;
-    //Serial.print(menuCounter);
     if(menuCounter > 4)
     {
       menuCounter = 0;
-      //Serial.print(menuCounter);
     }
-    //Serial.print(menuCounter);
-    //Serial.print("\n");
     break;
   }
 

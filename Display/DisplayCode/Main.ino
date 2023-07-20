@@ -1,3 +1,4 @@
+Timer timer;
 
 void setup() 
 {
@@ -85,9 +86,10 @@ void loop() {
     }
     delay(5000);
     state = 2;
+    timer.start();
   }
 
-  if(state==2)
+  if(state == 2)
   {
     ClearLCD();
     lcd.setCursor(0, 0);
@@ -96,6 +98,8 @@ void loop() {
     float temp= GetTemperature();
     lcd.setCursor(0, 1);
     lcd.print(temp);
+
+    DisplayTime();
     delay(1000);
   }
 }
