@@ -10,6 +10,10 @@ AccelStepper spoolStepper(4,8,9,10,11);
 
 bool beginMotor = false;
 
+// Define variables
+bool motorBackward = false;
+bool motorHoming = true;
+
 volatile unsigned long lastRefresh = 0;
 const unsigned long refresehInterval = 1000;
 
@@ -33,12 +37,38 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(encoderSW), pushButton, FALLING);
   attachInterrupt(digitalPinToInterrupt(LS), stopMotor, FALLING);
 
+  // Set the maximum speed to 150
+  spoolStepper.setMaxSpeed(150);
+
+  // Set the current motor position to 0
+  spoolStepper.setCurrentPosition(0);
+
   // Set the initial state to 0
-  state = 0;
+  state = 999;
 }
 
 void loop() {
   // Put your main code here, to run repeatedly:
+
+  if(state = 999)
+  {
+    lcd.setCursor(0, 0);
+    lcd.print("Preparing");
+    if(motorHoming == true)
+    {
+      MotorHoming();
+    }
+
+    if(motorBackward==true)
+    {
+      // Send the motor to the initial position
+      PrepareMotor();
+      state = 0;
+
+    }
+  }
+
+
   if(state == 0)
   {
     DisplayMaterialSelection();
@@ -87,7 +117,6 @@ void loop() {
       default:
       lcd.print("Nothing");
     }
-    delay(5000);
     state = 2;
     timer.start();
     ClearLCD();
@@ -111,17 +140,25 @@ void loop() {
       DisplayTime();
       lastRefresh = currentTime;
     }
-    //beginMotor = true;
+
+    if(temp > 24)
+    {
+      state = 3;
+      ClearLCD();
+    }
   }
 
+
+  if(state == 3)
+  {
+    lcd.setCursor(0,0);
+    lcd.print("Motor is running");    
+    RunSpoolMotor();
+  }
+  
   if (beginMotor == true)
   {
-    // Set the maximum speed to 150
-    spoolStepper.setMaxSpeed(150);
-    // Set the current motor position to 0
-    spoolStepper.setCurrentPosition(0);
     
-    RunSpoolMotor();
 
     //delay(1000);
     

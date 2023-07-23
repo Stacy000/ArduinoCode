@@ -37,7 +37,7 @@ void setup() {
 
 
 void loop() {
-  
+
   if(motorHoming == true)
   {  
     spoolStepper.setAcceleration(1200);
@@ -74,10 +74,10 @@ void stopMotor(){
   if (currentMillis - lastInterruptTime >= interruptInterval) {
     spoolStepper.stop();
     //Serial.print("Switch pressed");
-    motorBackward = true;
-    motorHoming = false;
     //Serial.write("\n");
     // Update the last interrupt time
     lastInterruptTime = currentMillis;
+    motorBackward = true;
+    motorHoming = false;
   }
 }
