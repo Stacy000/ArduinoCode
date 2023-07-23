@@ -1,25 +1,28 @@
+#include <AccelStepper.h>
+#include <MultiStepper.h>
+
 Timer timer;
+
+#define LS 18 //Interrupt pin
+
+// Define a 4 wire stepper motor to pin 8 9 10 11
+AccelStepper spoolStepper(4,8,9,10,11);
+
+bool beginMotor = false;
+
+volatile unsigned long lastRefresh = 0;
+const unsigned long refresehInterval = 1000;
 
 void setup() 
 {
-  Serial.begin(9600);
+  Serial.begin(4800);
   // put your setup code here, to run once:
   pinMode(encoderCLK, INPUT_PULLUP);
   pinMode(encoderDT, INPUT_PULLUP);
   pinMode(encoderSW, INPUT_PULLUP);
 
-  lcd.init();
-  lcd.backlight();
-
-  // Display the welcome page
-  lcd.setCursor(0,0); 
-  lcd.print("WELCOME");
-  lcd.setCursor(0,1); 
-  lcd.print("Test Version"); 
-  delay(2000); //wait 2 sec
-
-  // Clear the LED for next page
-  ClearLCD();
+  SetUpLCD();
+  SetUpLimitSwitch();
 
   // Store states of the rotary encoder
   // CLKPrev = digitalRead(encoderCLK);
@@ -28,13 +31,13 @@ void setup()
   // Define the interrupt functions
   attachInterrupt(digitalPinToInterrupt(encoderCLK), rotate, FALLING);
   attachInterrupt(digitalPinToInterrupt(encoderSW), pushButton, FALLING);
+  attachInterrupt(digitalPinToInterrupt(LS), stopMotor, FALLING);
 
   // Set the initial state to 0
   state = 0;
 }
 
 void loop() {
-
   // Put your main code here, to run repeatedly:
   if(state == 0)
   {
@@ -87,19 +90,40 @@ void loop() {
     delay(5000);
     state = 2;
     timer.start();
+    ClearLCD();
   }
 
   if(state == 2)
   {
-    ClearLCD();
-    lcd.setCursor(0, 0);
-    lcd.print("heating...");
-
+    unsigned long currentTime = millis();
     float temp= GetTemperature();
-    lcd.setCursor(0, 1);
-    lcd.print(temp);
 
-    DisplayTime();
-    delay(1000);
+    if((currentTime - lastRefresh) >= refresehInterval)
+    {
+      // Serial.print(currentTime);
+      // Serial.print("\n");
+      // Serial.print(lastRefresh);
+      // Serial.print("\n");
+      lcd.setCursor(0, 0);
+      lcd.print("heating...");
+      lcd.setCursor(0, 1);
+      lcd.print(temp);
+      DisplayTime();
+      lastRefresh = currentTime;
+    }
+    //beginMotor = true;
+  }
+
+  if (beginMotor == true)
+  {
+    // Set the maximum speed to 150
+    spoolStepper.setMaxSpeed(150);
+    // Set the current motor position to 0
+    spoolStepper.setCurrentPosition(0);
+    
+    RunSpoolMotor();
+
+    //delay(1000);
+    
   }
 }

@@ -1,6 +1,6 @@
-int tempPin1=A0;
-int tempPin2=A1;
-int tempPin3=A2;
+int tempPin1 = A0;
+int tempPin2 = A1;
+int tempPin3 = A2;
 
 int val = 0;
 
