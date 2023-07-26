@@ -28,7 +28,7 @@ extern bool spoolBackward;
 
 // Define unused pins
 int unusedPins[]= {0,1,4,5,7,12,13,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,15,16,17,18,22,23,24,25,
-                    26,27,28,29,30,32,33,34,35,37,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53};
+                    26,27,28,29,30 ,32,33,34,35,37,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53};
 
 // Define variables
 volatile unsigned long lastRefresh = 0;
