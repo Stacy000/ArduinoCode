@@ -3,16 +3,24 @@
 #include "SpoolStepper.h"
 #include "TemperatureReading.h"
 
+// Define pin for DC motor
+#define DC1 36
+#define DC2 38
+#define DC_EnB 6
+bool dcDecreasing = true;
+
+// Get the user defined type variables across files
 extern Timer timer;
 extern LiquidCrystal_I2C lcd;
 extern AccelStepper spoolStepper;
 
-// Get the variables across files
+// Get the lcd variables
 extern bool refreshLCD;
 extern bool refreshSelection;
 extern bool clearSelection;
 extern int state;
 
+// Get the spool motor variables
 extern bool motorBackward;
 extern bool motorHoming;
 extern bool spoolForward;
@@ -20,9 +28,9 @@ extern bool spoolBackward;
 
 // Define unused pins
 int unusedPins[]= {0,1,4,5,7,12,13,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,15,16,17,18,22,23,24,25,
-                    26,27,28,29,30,31,32,33,34,35,37,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53};
+                    26,27,28,29,30,32,33,34,35,37,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53};
 
-
+// Define variables
 volatile unsigned long lastRefresh = 0;
 const unsigned long refresehInterval = 1000;
 
@@ -33,30 +41,55 @@ void setup()
   pinMode(encoderCLK, INPUT_PULLUP);
   pinMode(encoderDT, INPUT_PULLUP);
   pinMode(encoderSW, INPUT_PULLUP);
+
+  // Set the DC motor
+  pinMode(DC1, OUTPUT);
+  pinMode(DC2, OUTPUT);
+    digitalWrite(DC1, LOW);
+  digitalWrite(DC2, HIGH);
+
   // Set the other limit switch signal as input; the pin is at high state by default
   pinMode(LS, INPUT_PULLUP);
 
   int size= sizeof(unusedPins)/sizeof(int);
-  // Set the unused pins to Output 0
+
+  // Set the unused pins to Output LOW signal
   for(int i = 0; i < size; i++)
   {
     pinMode(unusedPins[i], OUTPUT);
     digitalWrite(unusedPins[i], LOW);
   } 
-  
+
+  // Delay for stablization
+  delay(200);
+
   // Define the interrupt functions
   attachInterrupt(digitalPinToInterrupt(encoderCLK), rotate, FALLING);
   
   attachInterrupt(digitalPinToInterrupt(encoderSW), pushButton, FALLING);
-  int stat = digitalRead(LS);
+  
+  // int stat = digitalRead(LS);
+  // Serial.println(stat);
 
-  Serial.println(stat);
   attachInterrupt(digitalPinToInterrupt(LS), stopMotor, FALLING);
-  stat = digitalRead(LS);
 
-  Serial.println(stat);
+  // stat = digitalRead(LS);
+  // Serial.println(stat);
 
-  SetUpLCD();
+  //Set up the lcd
+  lcd.init();
+  lcd.backlight();
+
+  // Display the welcome page
+  lcd.setCursor(0,0); 
+  lcd.print("WELCOME");
+  lcd.setCursor(0,1); 
+  lcd.print("Test Version"); 
+  delay(2000); //wait 2 sec
+
+  // Clear the LED for next page
+  ClearLCD();
+
   // Set the maximum speed to 150
   spoolStepper.setMaxSpeed(200);
 
@@ -65,16 +98,11 @@ void setup()
   lcd.setCursor(0, 0);
   lcd.print("Homing");
 
-  // Set the initial state to 0
-  state = 999;
-
-  // Delay for stablization
-  
-  delay(2000);
 }
 
 void loop() {
 
+  // Put your main code here, to run repeatedly:
   if(state == 999)
   {
     if(motorHoming == true)
@@ -87,10 +115,7 @@ void loop() {
     {
       Prepare();
     }
-  }
-
-  //Put your main code here, to run repeatedly:
-  
+  }  
 
   if(state == 0)
   {
@@ -163,8 +188,19 @@ void loop() {
       DisplayTime();
       lastRefresh = currentTime;
     }
-    
-    RunDCMotor(); 
+
+    if(temp >= 50)
+    {
+      ClearLCD();
+      lcd.setCursor(0, 0);
+      lcd.print("Heating is done");
+      state = 3;
+    }
+  }
+
+  if(state ==3)
+  {
+    RunDCMotor();
     if(spoolForward == true)
     {
       SpoolingFoward();
@@ -176,4 +212,30 @@ void loop() {
     }
   }
 }
+
+void RunDCMotor() 
+{
+  int dcSpeed = 256;
+
+  if(dcDecreasing == true)
+  {
+    for (dcSpeed = 256; dcSpeed >= 30; dcSpeed--)
+    {
+    analogWrite(DC_EnB, dcSpeed);
+    if(dcSpeed == 70)
+    {
+      dcDecreasing = false;
+      break;
+    }
+
+    Serial.println(dcSpeed);
+    }
+  }
+
+  else
+  {
+    analogWrite(DC_EnB, 100);
+  }
+}
+
 

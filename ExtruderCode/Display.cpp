@@ -19,22 +19,6 @@ bool refreshLCD = true;
 bool refreshSelection = false;
 bool clearSelection = false;
 
-void SetUpLCD()
-{
-  lcd.init();
-  lcd.backlight();
-
-  // Display the welcome page
-  lcd.setCursor(0,0); 
-  lcd.print("WELCOME");
-  lcd.setCursor(0,1); 
-  lcd.print("Test Version"); 
-  delay(2000); //wait 2 sec
-
-  // Clear the LED for next page
-  ClearLCD();
-}
-
 // Clear the lcd screen
 void ClearLCD()
 {
@@ -160,6 +144,8 @@ void rotate()
   //Serial.print("FALLING");
   //Serial.print("\n");
   int i = digitalRead(encoderDT);
+
+  Serial.println(i);
 
   // Serial.print(i);
   // Serial.print("\n");

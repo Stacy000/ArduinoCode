@@ -7,7 +7,6 @@
 #define encoderDT 31
 #define encoderSW 2 //Interrupt pin
 
-void SetUpLCD();
 void ClearLCD();
 void DisplayMaterialSelection();
 void ClearCurrentCursor(int num);

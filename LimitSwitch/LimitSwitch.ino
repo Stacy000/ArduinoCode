@@ -45,26 +45,27 @@ void setup() {
 
 
 void loop() {
+  RunDCMotor();
 
-  if(motorHoming == true)
-  {  
-    Homing();
-  }
+  // if(motorHoming == true)
+  // {  
+  //   Homing();
+  // }
 
-  if(motorBackward == true)
-  {
-    Prepare();
-  }
+  // if(motorBackward == true)
+  // {
+  //   Prepare();
+  // }
 
-  if(spoolForward == true)
-  {
-    SpoolingFoward();
-  }
+  // if(spoolForward == true)
+  // {
+  //   SpoolingFoward();
+  // }
 
-  if(spoolBackward == true) 
-  {
-    SpoolingBackward();
-  }
+  // if(spoolBackward == true) 
+  // {
+  //   SpoolingBackward();
+  // }
 }
 
 void stopMotor(){
