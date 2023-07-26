@@ -1,61 +1,83 @@
-bool spooling = false;
+extern int DC1;
+extern int DC2;
+extern int DC_EnB;
+
+extern int LS;
+extern AccelStepper spoolStepper;
+
+extern bool motorBackward;
+extern bool motorHoming;
+extern bool spoolForward;
+extern bool spoolBackward;
 
 volatile unsigned long lastInterruptTime = 0;
 const unsigned long interruptInterval = 500;
 
-void SetUpLimitSwitch()
-{
-  // Set the other limit switch signal as input; the pin is at high state by default
-  pinMode(LS, INPUT_PULLUP);
+void Homing() {
+  spoolStepper.setAcceleration(800);
+  spoolStepper.moveTo(-5000);
+  spoolStepper.run();
 }
 
-void MotorHoming()
-{
-    spoolStepper.setAcceleration(1200);
-    spoolStepper.moveTo(-5000);
-    spoolStepper.runToPosition();
-}
-void PrepareMotor()
-{
-  if(motorBackward == true)
-  {
-    spoolStepper.setCurrentPosition(0);
-    spoolStepper.setAcceleration(70);
-    spoolStepper.moveTo(1300);
-    spoolStepper.runToPosition();
-    //motorBackward = false;
-    //spooling = true;
+void Prepare() {
+  spoolStepper.setMaxSpeed(150);
+  spoolStepper.setAcceleration(500);
+  spoolStepper.moveTo(1300);
+  spoolStepper.run();
+
+  if (spoolStepper.currentPosition() == 1300) {
+    motorBackward = false;
+    spoolForward = true;
+    ClearLCD();
+    state = 0;
   }
 }
 
-void RunSpoolMotor() {
-  
-  //Serial.print("Motor running\n");
-  spoolStepper.setCurrentPosition(0);
-  spoolStepper.setMaxSpeed(20);
-  spoolStepper.setAcceleration(1000);
-  spoolStepper.moveTo(1000);
-  //spoolStepper.setSpeed(50);
-  spoolStepper.runToPosition();
+void SpoolingFoward() {
+  spoolStepper.setMaxSpeed(50);
+  spoolStepper.setAcceleration(800);
+  spoolStepper.moveTo(2300);
+  spoolStepper.run();
 
-  spoolStepper.moveTo(0);
-  spoolStepper.runToPosition();
-
-  // if(spooling == true)
-  // {
-    
-  // }
+  if (spoolStepper.currentPosition() == 2300) {
+    spoolForward = false;
+    spoolBackward = true;
+    //spoolStepper.stop();
+  }
 }
 
-void stopMotor(){
+void SpoolingBackward() {
+  spoolStepper.setMaxSpeed(50);
+  spoolStepper.setAcceleration(800);
+  spoolStepper.moveTo(1300);
+  spoolStepper.run();
+
+  if (spoolStepper.currentPosition() == 1300) {
+    spoolBackward = false;
+    spoolForward = true;
+    //spoolStepper.stop();
+  }
+}
+
+void RunDCMotor() {
+  digitalWrite(DC1, LOW);
+  digitalWrite(DC2, HIGH);
+  analogWrite(DC_EnB, 180);
+}
+
+void stopMotor() {
   unsigned long currentMillis = millis();
-  if (currentMillis - lastInterruptTime >= interruptInterval) {
+
+  // TODO: Avoid overflow risk
+  
+  if ((currentMillis - lastInterruptTime) >= interruptInterval) {
     spoolStepper.stop();
     Serial.print("Switch pressed");
-    motorBackward = true;
-    motorHoming = false;
-    //Serial.write("\n");
+    Serial.write("\n");
     // Update the last interrupt time
     lastInterruptTime = currentMillis;
+    spoolStepper.setCurrentPosition(0);
+    motorBackward = true;
+    motorHoming = false;
   }
 }

@@ -2,7 +2,11 @@
 #include <MultiStepper.h>
 
 #define LS1 15
-#define LS2 18
+#define LS2 19
+
+int DC1 = 36;
+int DC2 = 38;
+int DC_EnB = 6;
 
 const int stepsPerRevolution = 10;
 
@@ -12,7 +16,6 @@ AccelStepper spoolStepper(4,8,9,10,11);
 // Define variables
 bool motorBackward = false;
 bool motorHoming = true;
-bool spooling = false;
 bool spoolForward = false;
 bool spoolBackward = false;
 volatile unsigned long lastInterruptTime = 0;
@@ -22,9 +25,10 @@ const unsigned long interruptInterval = 500;
 void setup() {
 
   Serial.begin(4800);
-  // Set one of the limit switch signal to high
-  pinMode(LS1, OUTPUT);
-  digitalWrite(LS1, HIGH);
+
+  pinMode(DC1, OUTPUT);
+  pinMode(DC2, OUTPUT);
+  pinMode(DC_EnB, OUTPUT);
 
   // Set the other limit switch signal as input; the pin is at high state by default
   pinMode(LS2, INPUT_PULLUP);
@@ -95,13 +99,14 @@ void Prepare()
   {
     motorBackward = false;
     spoolForward = true;
+    RunDCMotor();
   }
 }
 
 void SpoolingFoward()
 {
-  spoolStepper.setMaxSpeed(20);
-  spoolStepper.setAcceleration(1000);
+  spoolStepper.setMaxSpeed(50);
+  spoolStepper.setAcceleration(800);
   spoolStepper.moveTo(2300);
   spoolStepper.run();
 
@@ -115,8 +120,8 @@ void SpoolingFoward()
 
 void SpoolingBackward()
 {
-  spoolStepper.setMaxSpeed(20);
-  spoolStepper.setAcceleration(1000);
+  spoolStepper.setMaxSpeed(50);
+  spoolStepper.setAcceleration(800);
   spoolStepper.moveTo(1300);
   spoolStepper.run();
 
@@ -126,4 +131,11 @@ void SpoolingBackward()
     spoolForward = true;
     //spoolStepper.stop();
   }
+}
+
+void RunDCMotor()
+{
+  digitalWrite(DC1, LOW);
+  digitalWrite(DC2, HIGH);
+  analogWrite(DC_EnB, 180);
 }

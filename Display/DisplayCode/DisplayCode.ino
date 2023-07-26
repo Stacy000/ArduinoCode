@@ -6,11 +6,12 @@
 
 // Set the LCD address to 0x27 for a 16 chars and 2 line display
 LiquidCrystal_I2C lcd(0x27,20,4);
-  
-// Define pins
-#define encoderCLK 3 //Interrupt pin
-#define encoderDT 31
-#define encoderSW 2 //Interrupt pin
+
+extern int state;
+
+extern int encoderCLK; //Interrupt pin
+extern int encoderDT;
+extern int encoderSW; //Interrupt pin
 
 // Define variables for material selection state (state 0)
 int menuCounter = 0;
@@ -20,11 +21,9 @@ bool selectPET = false;
 bool selectPETE =false;
 bool selectNext = false;
 
-int state = 0;
-
-bool refreshLCD = true;
-bool refreshSelection = false;
-bool clearSelection = false;
+extern bool refreshLCD;
+extern bool refreshSelection;
+extern bool clearSelection;
 
 void SetUpLCD()
 {
@@ -200,7 +199,7 @@ void rotate()
 // Update the selection marker everytime the push button is pressed
 void pushButton()
 {
-  Serial.print("Button pressed!");  
+  //Serial.print("Button pressed!");  
 
   if(menuCounter==4)
   {
