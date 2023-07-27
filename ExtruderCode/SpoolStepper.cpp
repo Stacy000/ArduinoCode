@@ -1,10 +1,11 @@
 #include "SpoolStepper.h"
-#include "Display.h"
+#include "Encoder.h"
 
 #include <Arduino.h>
 
 // Define a 4 wire stepper motor to pin 8 9 10 11
 AccelStepper spoolStepper(4,8,9,10,11);
+extern LiquidCrystal_I2C lcd;
 
 // Define variables for spooling stepper motor
 bool motorBackward = false;
@@ -14,6 +15,8 @@ bool spoolForward = false;
 bool spoolBackward = false;
 
 int state = 999;
+
+bool startMotor = false;
 
 volatile unsigned long lastInterruptTime = 0;
 const unsigned long interruptInterval = 500;
@@ -33,7 +36,7 @@ void Prepare() {
   if (spoolStepper.currentPosition() == 1300) {
     motorBackward = false;
     spoolForward = true;
-    ClearLCD();
+    lcd.clear();
     state = 0;
   }
 }
@@ -63,13 +66,6 @@ void SpoolingBackward() {
     //spoolStepper.stop();
   }
 }
-
-// void RunDCMotor() 
-// {
-//   digitalWrite(DC1, LOW);
-//   digitalWrite(DC2, HIGH);
-//   analogWrite(DC_EnB, 50);
-// }
 
 void stopMotor() {
   unsigned long currentMillis = millis();

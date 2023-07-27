@@ -1,10 +1,11 @@
 #include <Arduino.h>
-#include "Display.h"
+#include "Encoder.h"
 
 extern int state;
+extern bool startMotor;
 
 // Set the LCD address to 0x27 for a 16 chars and 2 line display
-LiquidCrystal_I2C lcd(0x27,20,4);
+extern LiquidCrystal_I2C lcd;
 
 // Define variables for material selection state (state 0)
 int menuCounter = 0;
@@ -18,12 +19,6 @@ bool selectNext = false;
 bool refreshLCD = true;
 bool refreshSelection = false;
 bool clearSelection = false;
-
-// Clear the lcd screen
-void ClearLCD()
-{
-  lcd.clear();
-}
 
 // Display the material selection page
 void DisplayMaterialSelection()
@@ -180,15 +175,13 @@ void rotate()
 void pushButton()
 {
   //Serial.print("Button pressed!");  
-
-  if(menuCounter==4)
-  {
-    selectNext =true;
-    state = 1;
-  }
-
   if(state==0)
   {
+    if(menuCounter==4)
+    {
+    selectNext =true;
+    state = 1;
+    }
     // If any of the material has been selected
     if(selectABS==true || selectPETG==true || selectPETE==true ||selectPET==true)
     {
@@ -217,6 +210,11 @@ void pushButton()
 
     refreshLCD = true; //Refresh LCD after changing the value of the menu
     refreshSelection = true; //refresh the selection ("X")
+  }
+
+  if(state == 4)
+  {
+    startMotor = true;
   }
 }
 

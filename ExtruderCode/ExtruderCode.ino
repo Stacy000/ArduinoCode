@@ -1,7 +1,9 @@
-#include "Display.h"
+#include "Encoder.h"
 #include "DisplayTime.h"
 #include "SpoolStepper.h"
 #include "TemperatureReading.h"
+
+LiquidCrystal_I2C lcd(0x27,20,4);
 
 // Define pin for DC motor
 #define DC1 36
@@ -11,7 +13,6 @@ bool dcDecreasing = true;
 
 // Get the user defined type variables across files
 extern Timer timer;
-extern LiquidCrystal_I2C lcd;
 extern AccelStepper spoolStepper;
 
 // Get the lcd variables
@@ -25,7 +26,7 @@ extern bool motorBackward;
 extern bool motorHoming;
 extern bool spoolForward;
 extern bool spoolBackward;
-
+extern bool startMotor;
 // Define unused pins
 int unusedPins[]= {0,1,4,5,7,12,13,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,15,16,17,18,22,23,24,25,
                     26,27,28,29,30 ,32,33,34,35,37,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53};
@@ -33,7 +34,6 @@ int unusedPins[]= {0,1,4,5,7,12,13,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,
 // Define variables
 volatile unsigned long lastRefresh = 0;
 const unsigned long refresehInterval = 1000;
-bool startMotor = false;
 
 void setup() 
 {
@@ -88,7 +88,7 @@ void setup()
   delay(2000); //wait 2 sec
 
   // Clear the LED for next page
-  ClearLCD();
+  lcd.clear();
 
   // Set the maximum speed to 150
   spoolStepper.setMaxSpeed(200);
@@ -101,7 +101,7 @@ void setup()
 
 void loop() {
 
-  // Put your main code here, to run repeatedly:
+  // Bring the motor to a fixed initial position
   if(state == 999)
   {
     if(motorHoming == true)
@@ -116,6 +116,7 @@ void loop() {
     }
   }  
 
+  // Allow the user to select the material 
   if(state == 0)
   {
     DisplayMaterialSelection();
@@ -135,9 +136,10 @@ void loop() {
     }
   }
 
+  // Display the user select material
   if(state == 1)
   {
-    ClearLCD();
+    lcd.clear();
     lcd.setCursor(1,0);
     lcd.print("YOU HAVE SELECTED");
     int i = CheckCurrentSelection();
@@ -166,9 +168,10 @@ void loop() {
     }
     state = 2;
     timer.start();
-    ClearLCD();
+    lcd.clear();
   }
 
+  // Display the temperature and the heating time on lcd
   if(state == 2)
   {
     unsigned long currentTime = millis();
@@ -187,16 +190,23 @@ void loop() {
       DisplayTime();
       lastRefresh = currentTime;
     }
+    if(temp >= 50)
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Heating is done");
+      state = 3;
+     lcd.clear();
+    }
+  }
 
-    startMotor = true;
+  if(state==3)
+  {
+    lcd.setCursor(0,0);
+    lcd.print("Spooling");
+    lcd.setCursor(1, 0);
+    
 
-    // if(temp >= 50)
-    // {
-    //   ClearLCD();
-    //   lcd.setCursor(0, 0);
-    //   lcd.print("Heating is done");
-    //   state = 3;
-    // }
   }
 
   if(startMotor == true)
@@ -214,6 +224,7 @@ void loop() {
   }
 }
 
+// Function that controls the speed of the dc motor
 void RunDCMotor() 
 {
   int dcSpeed = 256;

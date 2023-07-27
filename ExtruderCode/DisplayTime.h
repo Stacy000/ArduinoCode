@@ -1,5 +1,5 @@
 #include <Timer.h>
-#include "Display.h"
+#include "Encoder.h"
 
 void DisplayTime();
 
