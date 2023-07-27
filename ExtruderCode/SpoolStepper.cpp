@@ -72,14 +72,23 @@ void stopMotor() {
 
   // TODO: Avoid overflow risk
   
-  if ((currentMillis - lastInterruptTime) >= interruptInterval) {
-    spoolStepper.stop();
-    Serial.print("Switch pressed");
-    Serial.write("\n");
-    // Update the last interrupt time
-    lastInterruptTime = currentMillis;
-    spoolStepper.setCurrentPosition(0);
-    motorBackward = true;
-    motorHoming = false;
+  if ((currentMillis - lastInterruptTime) >= interruptInterval) 
+  {
+    if(state==999)
+    {
+      spoolStepper.stop();
+      Serial.print("Switch pressed");
+      Serial.write("\n");
+      // Update the last interrupt time
+      lastInterruptTime = currentMillis;
+      spoolStepper.setCurrentPosition(0);
+      motorBackward = true;
+      motorHoming = false;
+    }
+
+    if(state == 3)
+    {
+      startMotor = true;
+    }
   }
 }

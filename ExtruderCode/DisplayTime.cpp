@@ -3,13 +3,26 @@
 int timeInSec = 0;
 int timeInMin = 0;
 // Define timer
-Timer timer;
+Timer heatingTimer;
+Timer spoolingTimer;
+
 extern LiquidCrystal_I2C lcd;
+extern int state;
 
 void DisplayTime()
 {
   lcd.setCursor(0,3);
-  timeInSec = timer.read()/1000;
+
+  if(state==2)
+  {
+    timeInSec = heatingTimer.read()/1000;
+  }
+
+  if(state == 3)
+  {
+    timeInSec = spoolingTimer.read()/1000;
+  }
+  
   lcd.print("time: ");
 
   if(timeInSec > 59)

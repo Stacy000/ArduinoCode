@@ -2,6 +2,7 @@
 #include "DisplayTime.h"
 #include "SpoolStepper.h"
 #include "TemperatureReading.h"
+#include "MainStepper.h"
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 
@@ -12,7 +13,8 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 bool dcDecreasing = true;
 
 // Get the user defined type variables across files
-extern Timer timer;
+extern Timer heatingTimer;
+extern Timer spoolingTimer;
 extern AccelStepper spoolStepper;
 
 // Get the lcd variables
@@ -51,6 +53,10 @@ void setup()
 
   // Set the other limit switch signal as input; the pin is at high state by default
   pinMode(LS, INPUT_PULLUP);
+
+  // Set the main stepper motor
+  pinMode(pulseNeg, OUTPUT);
+  pinMode(directionNeg, OUTPUT);
 
   int size= sizeof(unusedPins)/sizeof(int);
 
@@ -139,88 +145,38 @@ void loop() {
   // Display the user select material
   if(state == 1)
   {
-    lcd.clear();
-    lcd.setCursor(1,0);
-    lcd.print("YOU HAVE SELECTED");
-    int i = CheckCurrentSelection();
-    lcd.setCursor(1,3);
-
-    switch(i)
-    {
-      case 0:
-      lcd.print("ABS");
-      break;
-
-      case 1: 
-      lcd.print("PETG");
-      break;
-
-      case 2:
-      lcd.print("PET");
-      break;
-
-      case 3:
-      lcd.print("PETE");
-      break;
-
-      default:
-      lcd.print("Nothing");
-    }
-    state = 2;
-    timer.start();
-    lcd.clear();
+    DisplayUserSelection();
   }
 
   // Display the temperature and the heating time on lcd
+  // State becomes 3 when the heating process is done
   if(state == 2)
   {
-    unsigned long currentTime = millis();
-    float temp = GetTemperature();
-
-    if((currentTime - lastRefresh) >= refresehInterval)
-    {
-      // Serial.print(currentTime);
-      // Serial.print("\n");
-      // Serial.print(lastRefresh);
-      // Serial.print("\n");
-      lcd.setCursor(0, 0);
-      lcd.print("heating...");
-      lcd.setCursor(0, 1);
-      lcd.print(temp);
-      DisplayTime();
-      lastRefresh = currentTime;
-    }
-    if(temp >= 50)
-    {
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Heating is done");
-      state = 3;
-     lcd.clear();
-    }
+    DisplayHeating();
   }
 
-  if(state==3)
+  // State stays at 3 when the main motor is running
+  if(state == 3)
   {
-    lcd.setCursor(0,0);
-    lcd.print("Spooling");
-    lcd.setCursor(1, 0);
-    
-
+    lcd.setCursor(0,0); 
+    lcd.print("Spooling...");
+    DisplayTime();
+    lcd.setCursor(0,1);
+    lcd.print("Start motor");
   }
 
   if(startMotor == true)
   {
-    RunDCMotor();
-    if(spoolForward == true)
-    {
+      RunDCMotor();
+      if(spoolForward == true)
+      {
       SpoolingFoward();
-    }
+      }
 
-    if(spoolBackward == true) 
-    {
-      SpoolingBackward();
-    }
+      if(spoolBackward == true) 
+      {
+        SpoolingBackward();
+      }
   }
 }
 
@@ -251,4 +207,68 @@ void RunDCMotor()
   }
 }
 
+void DisplayUserSelection()
+{
+  lcd.clear();
+  lcd.setCursor(1,0);
+  lcd.print("YOU HAVE SELECTED");
+  int i = CheckCurrentSelection();
+  lcd.setCursor(1,3);
 
+  switch(i)
+  {
+    case 0:
+    lcd.print("ABS");
+    break;
+
+    case 1: 
+    lcd.print("PETG");
+    break;
+
+    case 2:
+    lcd.print("PET");
+    break;
+
+    case 3:
+    lcd.print("PETE");
+    break;
+
+    default:
+    lcd.print("Nothing");
+  }
+  state = 2;
+  heatingTimer.start();
+  lcd.clear();
+}
+
+// Function that displays the current temperature and time that has passed since the beginning of the heating process.
+void DisplayHeating()
+{
+  unsigned long currentTime = millis();
+  float temp = GetTemperature();
+
+  if((currentTime - lastRefresh) >= refresehInterval) // Re-print the temperature reading on the lcd every 1s
+  {
+    // Serial.print(currentTime);
+    // Serial.print("\n");
+    // Serial.print(lastRefresh);
+    // Serial.print("\n");
+    lcd.setCursor(0, 0);
+    lcd.print("heating...");
+    lcd.setCursor(0, 1);
+    lcd.print(temp);
+    DisplayTime();
+    lastRefresh = currentTime;
+  }
+
+  // Finish the heating process when the temperature is at the set point
+  if(temp >= 50)
+  {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Heating is done");
+    state = 3;
+    lcd.clear();
+    spoolingTimer.start();
+  }
+}

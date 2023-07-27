@@ -1,3 +1,5 @@
+// This Encoder.cpp contains all the functions that is related to the encoder as well as the display page for the material selection stage
+
 #include <Arduino.h>
 #include "Encoder.h"
 
@@ -12,7 +14,7 @@ int menuCounter = 0;
 bool selectABS = false;
 bool selectPETG = false;
 bool selectPET = false;
-bool selectPETE =false;
+bool selectPETE = false;
 bool selectNext = false;
 
 // Define variables
@@ -23,7 +25,7 @@ bool clearSelection = false;
 // Display the material selection page
 void DisplayMaterialSelection()
 {
-  lcd.setCursor(1,0);
+  lcd.setCursor(1,0); //setCursor(column, row)
   lcd.print("ABS");
 
   lcd.setCursor(1,1);
@@ -136,39 +138,39 @@ void updateCursorPosition()
 // This function is triggered when the CLK signal from the encoder is at its falling edge
 void rotate()
 {
-  //Serial.print("FALLING");
-  //Serial.print("\n");
   int i = digitalRead(encoderDT);
-
   Serial.println(i);
 
-  // Serial.print(i);
-  // Serial.print("\n");
-
-  switch(i)
+  //Serial.print("FALLING");
+  //Serial.print("\n");
+  if(state == 0)
   {
-    // COUNTER CLOCKWISE
-    case 0: 
-    menuCounter--;
-    if(menuCounter < 0)
+    // Serial.print(i);
+    // Serial.print("\n");
+    switch(i)
     {
-      menuCounter = 4;
-    }     
-    break;
-    
-    // CLOCKWISE
-    case 1: 
-    menuCounter++;
-    if(menuCounter > 4)
-    {
-      menuCounter = 0;
+      // COUNTER CLOCKWISE
+      case 0: 
+      menuCounter--;
+      if(menuCounter < 0)
+      {
+        menuCounter = 4;
+      }     
+      break;
+      
+      // CLOCKWISE
+      case 1: 
+      menuCounter++;
+      if(menuCounter > 4)
+      {
+        menuCounter = 0;
+      }
+      break;
     }
-    break;
-  }
 
-  //Refresh LCD after changing the counter's value
-  refreshLCD = true;
-  //clearSelection=true;
+    //Refresh LCD after changing the counter's value
+    refreshLCD = true;
+  }
 }
 
 // Update the selection marker everytime the push button is pressed
@@ -210,11 +212,6 @@ void pushButton()
 
     refreshLCD = true; //Refresh LCD after changing the value of the menu
     refreshSelection = true; //refresh the selection ("X")
-  }
-
-  if(state == 4)
-  {
-    startMotor = true;
   }
 }
 
