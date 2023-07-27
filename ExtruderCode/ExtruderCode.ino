@@ -33,6 +33,7 @@ int unusedPins[]= {0,1,4,5,7,12,13,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,
 // Define variables
 volatile unsigned long lastRefresh = 0;
 const unsigned long refresehInterval = 1000;
+bool startMotor = false;
 
 void setup() 
 {
@@ -45,7 +46,7 @@ void setup()
   // Set the DC motor
   pinMode(DC1, OUTPUT);
   pinMode(DC2, OUTPUT);
-    digitalWrite(DC1, LOW);
+  digitalWrite(DC1, LOW);
   digitalWrite(DC2, HIGH);
 
   // Set the other limit switch signal as input; the pin is at high state by default
@@ -65,13 +66,12 @@ void setup()
 
   // Define the interrupt functions
   attachInterrupt(digitalPinToInterrupt(encoderCLK), rotate, FALLING);
-  
   attachInterrupt(digitalPinToInterrupt(encoderSW), pushButton, FALLING);
   
   // int stat = digitalRead(LS);
   // Serial.println(stat);
 
-  attachInterrupt(digitalPinToInterrupt(LS), stopMotor, FALLING);
+  attachInterrupt(digitalPinToInterrupt(LS), stopMotor, FALLING); //Note: The interrupt function triggers once when initializing the attachInterrupt. The signal of the LS pin is HIGH before and after this line.
 
   // stat = digitalRead(LS);
   // Serial.println(stat);
@@ -97,7 +97,6 @@ void setup()
   spoolStepper.setCurrentPosition(0);
   lcd.setCursor(0, 0);
   lcd.print("Homing");
-
 }
 
 void loop() {
@@ -189,16 +188,18 @@ void loop() {
       lastRefresh = currentTime;
     }
 
-    if(temp >= 50)
-    {
-      ClearLCD();
-      lcd.setCursor(0, 0);
-      lcd.print("Heating is done");
-      state = 3;
-    }
+    startMotor = true;
+
+    // if(temp >= 50)
+    // {
+    //   ClearLCD();
+    //   lcd.setCursor(0, 0);
+    //   lcd.print("Heating is done");
+    //   state = 3;
+    // }
   }
 
-  if(state ==3)
+  if(startMotor == true)
   {
     RunDCMotor();
     if(spoolForward == true)
@@ -217,12 +218,13 @@ void RunDCMotor()
 {
   int dcSpeed = 256;
 
+  // To overcome the holding torque
   if(dcDecreasing == true)
   {
-    for (dcSpeed = 256; dcSpeed >= 30; dcSpeed--)
+    for (dcSpeed = 256; dcSpeed >= 70; dcSpeed--)
     {
     analogWrite(DC_EnB, dcSpeed);
-    if(dcSpeed == 70)
+    if(dcSpeed == 80)
     {
       dcDecreasing = false;
       break;

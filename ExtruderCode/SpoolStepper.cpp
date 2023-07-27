@@ -13,7 +13,7 @@ bool motorHoming = true;
 bool spoolForward = false;
 bool spoolBackward = false;
 
-int state = 0;
+int state = 999;
 
 volatile unsigned long lastInterruptTime = 0;
 const unsigned long interruptInterval = 500;
