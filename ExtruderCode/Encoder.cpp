@@ -29,7 +29,7 @@ bool refreshSelection = false;
 bool clearSelection = false;
 
 volatile unsigned long lastPushButton = 0;
-const unsigned long interruptInterval = 500;
+const unsigned long pushButtonInterval = 500;
 
 // Display the material selection page
 void DisplayMaterialSelection()
@@ -203,12 +203,16 @@ void Rotate()
 // Update the selection marker everytime the push button is pressed
 void PushButton()
 {
-  Serial.println("Button pressed!"); 
+  //Serial.println("Button pressed!"); 
+  unsigned long currentMillis = millis();
 
-  // if ((currentMillis - lastPushButton) >= pushButtonInterval) 
-  // { 
-    if(state == 0)
+  // Sofware debouncing for push button on the encoder
+   if ((currentMillis - lastPushButton) >= pushButtonInterval) 
+   { 
+    switch(state)
     {
+      // When the state is 0
+      case 0:
       if(menuCounter == 4)
       {
         selectNext = true;
@@ -241,15 +245,16 @@ void PushButton()
         break;
       }
 
-      Serial.println(state);
+      //Serial.println(state);
       //Serial.println(selectABS);
 
       refreshLCD = true; //Refresh LCD after changing the value of the menu
       refreshSelection = true; //refresh the selection ("X")
-    }
-    
-    if(state == 1)
-    {
+
+      break;
+
+      // When the state is 1
+      case 1:
       if(left == true)
       {
         selectYes = true;
@@ -259,7 +264,12 @@ void PushButton()
       {
         selectBack = true;
       }
+      break;
     }
+
+    // Update the time which the push button is pressed
+    lastPushButton = currentMillis;
+   }
 }
 
 // change the marker to "X"
@@ -291,6 +301,7 @@ void UpdateSelection()
   }
 }
 
+// Update the cursor position to for state 1, left means the cursor is at Yes, right means the cursor is at Back
 void UpdateStateOneCursor()
 {
   //Serial.print(left);
@@ -311,6 +322,7 @@ void UpdateStateOneCursor()
   }
 }
 
+// When the system is back to state 0, clear all the variables that controls the logic of the program
 void ResetAllSelection()
 {
   menuCounter = 0;

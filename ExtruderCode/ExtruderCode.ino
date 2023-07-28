@@ -219,10 +219,8 @@ void RunDCMotor()
 // If the user select Yes, the state jumps to 2; if the user select Back, the state jumps to 0.
 void DisplayUserSelection()
 {
-  Serial.println("?");
   lcd.setCursor(1,0);
   lcd.print("YOU HAVE SELECTED");
-  Serial.println("!");
   int i = CheckCurrentSelection();
   lcd.setCursor(1,1);
 
