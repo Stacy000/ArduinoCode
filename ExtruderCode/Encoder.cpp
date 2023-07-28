@@ -17,6 +17,12 @@ bool selectPET = false;
 bool selectPETE = false;
 bool selectNext = false;
 
+// Define variables for state 1
+bool selectYes = false;
+bool selectBack = false;
+bool right = false;
+bool left = false;
+
 // Define variables
 bool refreshLCD = true;
 bool refreshSelection = false;
@@ -95,7 +101,7 @@ int CheckCurrentSelection()
 }
 
 // Move the ">" cursor
-void updateCursorPosition()
+void UpdateCursorPosition()
 {
   int keep = CheckCurrentSelection();
 
@@ -136,7 +142,7 @@ void updateCursorPosition()
 }
 
 // This function is triggered when the CLK signal from the encoder is at its falling edge
-void rotate()
+void Rotate()
 {
   int i = digitalRead(encoderDT);
   Serial.println(i);
@@ -171,10 +177,28 @@ void rotate()
     //Refresh LCD after changing the counter's value
     refreshLCD = true;
   }
+
+  if(state == 1)
+  {
+    switch(i)
+    {
+      case 0: 
+      left = true;
+      right = false;
+      break;
+
+      case 1:
+      right = true;
+      left = false;
+      break;
+    }
+
+    refreshLCD == true;
+  }
 }
 
 // Update the selection marker everytime the push button is pressed
-void pushButton()
+void PushButton()
 {
   //Serial.print("Button pressed!");  
   if(state==0)
@@ -213,33 +237,65 @@ void pushButton()
     refreshLCD = true; //Refresh LCD after changing the value of the menu
     refreshSelection = true; //refresh the selection ("X")
   }
+
+  if(state == 1)
+  {
+    if(left == true)
+    {
+      selectYes == true;
+    }
+
+    if(right == true)
+    {
+      selectBack == true;
+    }
+  }
 }
 
 // change the marker to "X"
-void updateSelection()
+void UpdateSelection()
 {
   // When any material is selected, ">" becomes "X"
-  if(selectABS==true)
+  if(selectABS == true)
   {
     lcd.setCursor(0,0);
     lcd.print("X");
   }
 
-  if(selectPETG==true)
+  if(selectPETG == true)
   {
     lcd.setCursor(0,1);
     lcd.print("X");
   }
 
-  if(selectPET==true)
+  if(selectPET == true)
   {
     lcd.setCursor(0,2);
     lcd.print("X");
   }
 
-  if(selectPETE==true)
+  if(selectPETE == true)
   {
     lcd.setCursor(0,3);
     lcd.print("X");
+  }
+}
+
+void UpdateStateOneCursor()
+{
+  if(right == true)
+  {
+    lcd.setCursor(7,3);
+    lcd.print(" ");
+    lcd.setCursor(3,3);
+    lcd.print(">");
+  }
+
+  if(left == true)
+  {
+    lcd.setCursor(7,3);
+    lcd.print(">");
+    lcd.setCursor(3,3);
+    lcd.print(" ");
   }
 }

@@ -28,5 +28,5 @@ void RunMainStepper(int sleepTime)
     digitalWrite(pulseNeg, LOW);
     Serial.println(pulseNeg);
     //delayMicroseconds(sleepTime);
-  }
+  } 
 }

@@ -22,6 +22,8 @@ extern bool refreshLCD;
 extern bool refreshSelection;
 extern bool clearSelection;
 extern int state;
+extern bool selectYes;
+extern bool selectBack;
 
 // Get the spool motor variables
 extern bool motorBackward;
@@ -71,8 +73,8 @@ void setup()
   delay(200);
 
   // Define the interrupt functions
-  attachInterrupt(digitalPinToInterrupt(encoderCLK), rotate, FALLING);
-  attachInterrupt(digitalPinToInterrupt(encoderSW), pushButton, FALLING);
+  attachInterrupt(digitalPinToInterrupt(encoderCLK), Rotate, FALLING);
+  attachInterrupt(digitalPinToInterrupt(encoderSW), PushButton, FALLING);
   
   // int stat = digitalRead(LS);
   // Serial.println(stat);
@@ -130,14 +132,14 @@ void loop() {
     // refreshLCD is true only when the interrupts are triggered
     if(refreshLCD == true) 
     {
-      updateCursorPosition(); //update the position
+      UpdateCursorPosition(); //update the position
       refreshLCD = false; //reset the variable - wait for a new trigger
     }
 
     // refreshSelection is only true when the pushbutton is pressed
     if(refreshSelection == true) //if the selection is changed
     {
-      updateSelection();
+      UpdateSelection();
       refreshSelection = false; // reset the variable - wait for a new trigger
     }
   }
@@ -164,7 +166,7 @@ void loop() {
     lcd.setCursor(0,1);
     lcd.print("Start motor");
   }
-
+ 
   if(startMotor == true)
   {
       RunDCMotor();
@@ -207,13 +209,15 @@ void RunDCMotor()
   }
 }
 
+// Function is called when the state is 1
+// If the user select Yes, the state jumps to 2; if the user select Back, the state jumps to 0.
 void DisplayUserSelection()
 {
   lcd.clear();
   lcd.setCursor(1,0);
   lcd.print("YOU HAVE SELECTED");
   int i = CheckCurrentSelection();
-  lcd.setCursor(1,3);
+  lcd.setCursor(1,1);
 
   switch(i)
   {
@@ -236,9 +240,32 @@ void DisplayUserSelection()
     default:
     lcd.print("Nothing");
   }
-  state = 2;
-  heatingTimer.start();
-  lcd.clear();
+
+  lcd.setCursor(4,2);
+  lcd.print("Countinue?");
+  lcd.setCursor(4,3);
+  lcd.print("Yes");
+  lcd.setCursor(8,3);
+  lcd.print("Back");
+
+  if(refreshLCD==true)
+  {
+    UpdateStateOneCursor();
+    refreshLCD = false; 
+  }
+  
+  if(selectYes==true)
+  {
+    state = 2;
+    heatingTimer.start();
+    lcd.clear();
+  }
+
+  if(selectBack==true)
+  {
+    state = 0;
+    lcd.clear();
+  }
 }
 
 // Function that displays the current temperature and time that has passed since the beginning of the heating process.

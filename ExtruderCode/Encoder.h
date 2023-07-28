@@ -10,8 +10,9 @@
 void DisplayMaterialSelection();
 void ClearCurrentCursor(int num);
 int CheckCurrentSelection();
-void updateCursorPosition();
-void rotate();
-void pushButton();
-void updateSelection();
+void UpdateCursorPosition();
+void Rotate();
+void PushButton();
+void UpdateSelection();
+void UpdateStateOneCursor();
 

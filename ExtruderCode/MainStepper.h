@@ -7,4 +7,4 @@
 
 // Get pulse period
 int getSleepTime(int pulsePerRev, int rpm);
-void RunMainStepper();
+void RunMainStepper(int sleepTime);
