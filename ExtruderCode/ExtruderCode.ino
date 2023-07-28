@@ -305,6 +305,8 @@ void DisplayHeating()
       lcd.print("Preheating: ");
       lcd.setCursor(12, 1);
       lcd.print(temp);
+      lcd.setCursor(9,0);
+      lcd.print(String(char(223)) + "C");
       lcd.setCursor(5,0);
 
       switch(currentSelection)
