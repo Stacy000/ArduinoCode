@@ -13,7 +13,7 @@ extern LiquidCrystal_I2C lcd;
 int menuCounter = 0;
 bool selectABS = false;
 bool selectPETG = false;
-bool selectPET = false;
+bool selectPLA= false;
 bool selectPETE = false;
 bool selectNext = false;
 
@@ -41,7 +41,7 @@ void DisplayMaterialSelection()
   lcd.print("PETG");
 
   lcd.setCursor(1,2);
-  lcd.print("PET");
+  lcd.print("PLA");
 
   lcd.setCursor(1,3);
   lcd.print("PETE");
@@ -90,7 +90,7 @@ int CheckCurrentSelection()
     return 1;
   }
 
-  if(selectPET==true)
+  if(selectPLA==true)
   {
     return 2;
   }
@@ -220,10 +220,10 @@ void PushButton()
       }
 
       // If any of the material has been selected
-      else if(selectABS == true || selectPETG == true || selectPETE == true ||selectPET == true)
+      else if(selectABS == true || selectPETG == true || selectPETE == true ||selectPLA == true)
       {
         // Clear the selection
-        selectABS = selectPETE = selectPET = selectPETG = false;
+        selectABS = selectPETE = selectPLA = selectPETG = false;
       }
 
       switch(menuCounter)
@@ -237,7 +237,7 @@ void PushButton()
         break;
 
         case 2: 
-        selectPET = true;
+        selectPLA = true;
         break;
 
         case 3:
@@ -288,7 +288,7 @@ void UpdateSelection()
     lcd.print("X");
   }
 
-  if(selectPET == true)
+  if(selectPLA == true)
   {
     lcd.setCursor(0,2);
     lcd.print("X");
@@ -326,7 +326,7 @@ void UpdateStateOneCursor()
 void ResetAllSelection()
 {
   menuCounter = 0;
-  selectABS = selectPETE = selectPET = selectPETG = selectNext = false;
+  selectABS = selectPETE = selectPLA = selectPETG = selectNext = false;
   left = right = selectYes = selectBack = false;
   UpdateCursorPosition();
 }

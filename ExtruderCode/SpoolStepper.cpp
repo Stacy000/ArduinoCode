@@ -14,7 +14,7 @@ bool motorHoming = true;
 bool spoolForward = false;
 bool spoolBackward = false;
 
-int state = 999;
+int state = 0;
 
 bool startMotor = false;
 
@@ -74,6 +74,7 @@ void stopMotor() {
   
   if ((currentMillis - lastInterruptTime) >= interruptInterval) 
   {
+    // Homing only happens at the start of the program (state 999), avoid unexpected limit switch trigerring at other stages
     if(state==999)
     {
       spoolStepper.stop();

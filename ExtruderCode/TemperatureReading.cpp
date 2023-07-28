@@ -1,11 +1,15 @@
 #include "TemperatureReading.h"
 
 bool heaterStop = false;
+int setPointABS = 250;
+int setPointPETG = 230;
+int setPointPLA = 200;
+int setPointPETE = 390;
 
 // Get the readings from the thermocouple, and convert the readings to voltage first, then temperature in degree celsius 
 float GetTemperature()
 {
-  int val[3] = {analogRead(tempPin1), analogRead(tempPin2), analogRead(tempPin3)};
+  int val[3] = {analogRead(tempPin1), analogRead(tempPin1), analogRead(tempPin1)};
   float voltage = 0;
 
   float temp[3] = {};
@@ -18,6 +22,7 @@ float GetTemperature()
   if(CompareSensorReading(temp[0], temp[1], temp[2]) == true)
   {
     float tempAvg = (temp[0] + temp[1] + temp[2]) / 3;
+    tempAvg = round(tempAvg * 100.0) / 100.0;
     return tempAvg;
   }
   else

@@ -11,6 +11,8 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 #define DC2 38
 #define DC_EnB 6
 bool dcDecreasing = true;
+int currentSelection = -1;
+float preHeatingTemp = 0;
 
 // Get the user defined type variables across files
 extern Timer heatingTimer;
@@ -32,6 +34,13 @@ extern bool motorHoming;
 extern bool spoolForward;
 extern bool spoolBackward;
 extern bool startMotor;
+
+// Get the temperature variables
+extern int setPointABS;
+extern int setPointPETG;
+extern int setPointPLA;
+extern int setPointPETE;
+
 // Define unused pins
 int unusedPins[]= {0,1,4,5,7,12,13,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,15,16,17,18,22,23,24,25,
                     26,27,28,29,30 ,32,33,34,35,37,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53};
@@ -178,7 +187,7 @@ void loop() {
       RunDCMotor();
       if(spoolForward == true)
       {
-      SpoolingFoward();
+        SpoolingFoward();
       }
 
       if(spoolBackward == true) 
@@ -204,8 +213,7 @@ void RunDCMotor()
         dcDecreasing = false;
         break;
       }
-
-      Serial.println(dcSpeed);
+      //Serial.println(dcSpeed);
     }
   }
 
@@ -221,10 +229,10 @@ void DisplayUserSelection()
 {
   lcd.setCursor(1,0);
   lcd.print("YOU HAVE SELECTED");
-  int i = CheckCurrentSelection();
+  currentSelection = CheckCurrentSelection();
   lcd.setCursor(1,1);
 
-  switch(i)
+  switch(currentSelection)
   {
     case 0:
     lcd.print("ABS");
@@ -235,7 +243,7 @@ void DisplayUserSelection()
     break;
 
     case 2:
-    lcd.print("PET");
+    lcd.print("PLA");
     break;
 
     case 3:
@@ -281,27 +289,59 @@ void DisplayHeating()
 {
   unsigned long currentTime = millis();
   float temp = GetTemperature();
-
   if((currentTime - lastRefresh) >= refresehInterval) // Re-print the temperature reading on the lcd every 1s
   {
-    // Serial.print(currentTime);
-    // Serial.print("\n");
-    // Serial.print(lastRefresh);
-    // Serial.print("\n");
-    lcd.setCursor(0, 0);
-    lcd.print("heating...");
-    lcd.setCursor(0, 1);
-    lcd.print(temp);
-    DisplayTime();
-    lastRefresh = currentTime;
-  }
+    // if(temp == 0)
+    // {
+    //   lcd.setCursor(0, 0);
+    //   lcd.print("CHECK TEMP SENSOR");
+    // }
 
-  // Finish the heating process when the temperature is at the set point
-  if(temp >= 900)
+    // else
+    // {
+      lcd.setCursor(0,0);
+      lcd.print("SP = ");
+      lcd.setCursor(0,1);
+      lcd.print("Preheating: ");
+      lcd.setCursor(12, 1);
+      lcd.print(temp);
+      lcd.setCursor(5,0);
+
+      switch(currentSelection)
+      {
+        case 0:
+        lcd.print(setPointABS);
+        preHeatingTemp = setPointABS - 10;
+        break;
+        
+        case 1:
+        lcd.print(setPointPETG);
+        preHeatingTemp = setPointPETG - 10;
+        break;
+
+        case 2:
+        lcd.print(setPointPLA);
+        preHeatingTemp = setPointPLA - 10;
+        break;
+
+        case 3:
+        lcd.print(setPointPETE);
+        preHeatingTemp = setPointPETE - 10;
+        break;
+
+        default: 
+        Serial.println(currentSelection);
+        break;
+      }
+
+      DisplayTime();
+      lastRefresh = currentTime;
+    }
+
+  // Finish the heating process and start spooling the filament
+  if (temp >= 999)
   {
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Heating is done");
+    lcd.print("heating is done");
     state = 3;
     lcd.clear();
     spoolingTimer.start();
