@@ -28,6 +28,9 @@ bool refreshLCD = true;
 bool refreshSelection = false;
 bool clearSelection = false;
 
+volatile unsigned long lastPushButton = 0;
+const unsigned long interruptInterval = 500;
+
 // Display the material selection page
 void DisplayMaterialSelection()
 {
@@ -77,7 +80,7 @@ void ClearCurrentCursor(int num)
 // Return 0 for ABS; 1 for PETG; 2 for PET; 3 for PETE; 5 if nothing has been selected
 int CheckCurrentSelection()
 {
-  if(selectABS==true)
+  if(selectABS == true)
   {
     return 0;
   }
@@ -145,7 +148,7 @@ void UpdateCursorPosition()
 void Rotate()
 {
   int i = digitalRead(encoderDT);
-  Serial.println(i);
+  //Serial.println(i);
 
   //Serial.print("FALLING");
   //Serial.print("\n");
@@ -176,6 +179,7 @@ void Rotate()
 
     //Refresh LCD after changing the counter's value
     refreshLCD = true;
+    //Serial.print(menuCounter);
   }
 
   if(state == 1)
@@ -192,64 +196,70 @@ void Rotate()
       left = false;
       break;
     }
-
-    refreshLCD == true;
+    refreshLCD = true;
   }
 }
 
 // Update the selection marker everytime the push button is pressed
 void PushButton()
 {
-  //Serial.print("Button pressed!");  
-  if(state==0)
-  {
-    if(menuCounter==4)
+  Serial.println("Button pressed!"); 
+
+  // if ((currentMillis - lastPushButton) >= pushButtonInterval) 
+  // { 
+    if(state == 0)
     {
-    selectNext =true;
-    state = 1;
+      if(menuCounter == 4)
+      {
+        selectNext = true;
+        state = 1;
+      }
+
+      // If any of the material has been selected
+      else if(selectABS == true || selectPETG == true || selectPETE == true ||selectPET == true)
+      {
+        // Clear the selection
+        selectABS = selectPETE = selectPET = selectPETG = false;
+      }
+
+      switch(menuCounter)
+      {
+        case 0:
+        selectABS = true;
+        break;
+
+        case 1:
+        selectPETG = true; 
+        break;
+
+        case 2: 
+        selectPET = true;
+        break;
+
+        case 3:
+        selectPETE = true;
+        break;
+      }
+
+      Serial.println(state);
+      //Serial.println(selectABS);
+
+      refreshLCD = true; //Refresh LCD after changing the value of the menu
+      refreshSelection = true; //refresh the selection ("X")
     }
-    // If any of the material has been selected
-    if(selectABS==true || selectPETG==true || selectPETE==true ||selectPET==true)
+    
+    if(state == 1)
     {
-      // Clear the selection
-      selectABS=selectPETE=selectPET=selectPETG = false;
+      if(left == true)
+      {
+        selectYes = true;
+      }
+
+      if(right == true)
+      {
+        selectBack = true;
+      }
     }
-
-    switch(menuCounter)
-    {
-      case 0:
-      selectABS = true;
-      break;
-
-      case 1:
-      selectPETG = true; 
-      break;
-
-      case 2: 
-      selectPET = true;
-      break;
-
-      case 3:
-      selectPETE = true;
-      break;
-    }
-
-    refreshLCD = true; //Refresh LCD after changing the value of the menu
-    refreshSelection = true; //refresh the selection ("X")
-  }
-
-  if(state == 1)
-  {
-    if(left == true)
-    {
-      selectYes == true;
-    }
-
-    if(right == true)
-    {
-      selectBack == true;
-    }
-  }
 }
 
 // change the marker to "X"
@@ -283,19 +293,28 @@ void UpdateSelection()
 
 void UpdateStateOneCursor()
 {
-  if(right == true)
+  //Serial.print(left);
+  if(left == true)
   {
-    lcd.setCursor(7,3);
+    lcd.setCursor(8,3);
     lcd.print(" ");
     lcd.setCursor(3,3);
     lcd.print(">");
   }
 
-  if(left == true)
+  if(right == true)
   {
-    lcd.setCursor(7,3);
+    lcd.setCursor(8,3);
     lcd.print(">");
     lcd.setCursor(3,3);
     lcd.print(" ");
   }
+}
+
+void ResetAllSelection()
+{
+  menuCounter = 0;
+  selectABS = selectPETE = selectPET = selectPETG = selectNext = false;
+  left = right = selectYes = selectBack = false;
+  UpdateCursorPosition();
 }

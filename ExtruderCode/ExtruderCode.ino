@@ -24,6 +24,7 @@ extern bool clearSelection;
 extern int state;
 extern bool selectYes;
 extern bool selectBack;
+extern bool selectNext;
 
 // Get the spool motor variables
 extern bool motorBackward;
@@ -147,6 +148,11 @@ void loop() {
   // Display the user select material
   if(state == 1)
   {
+    if(selectNext == true)
+    {
+      lcd.clear();
+      selectNext = false;
+    }
     DisplayUserSelection();
   }
 
@@ -192,14 +198,14 @@ void RunDCMotor()
   {
     for (dcSpeed = 256; dcSpeed >= 70; dcSpeed--)
     {
-    analogWrite(DC_EnB, dcSpeed);
-    if(dcSpeed == 80)
-    {
-      dcDecreasing = false;
-      break;
-    }
+      analogWrite(DC_EnB, dcSpeed);
+      if(dcSpeed == 80)
+      {
+        dcDecreasing = false;
+        break;
+      }
 
-    Serial.println(dcSpeed);
+      Serial.println(dcSpeed);
     }
   }
 
@@ -213,9 +219,10 @@ void RunDCMotor()
 // If the user select Yes, the state jumps to 2; if the user select Back, the state jumps to 0.
 void DisplayUserSelection()
 {
-  lcd.clear();
+  Serial.println("?");
   lcd.setCursor(1,0);
   lcd.print("YOU HAVE SELECTED");
+  Serial.println("!");
   int i = CheckCurrentSelection();
   lcd.setCursor(1,1);
 
@@ -245,26 +252,29 @@ void DisplayUserSelection()
   lcd.print("Countinue?");
   lcd.setCursor(4,3);
   lcd.print("Yes");
-  lcd.setCursor(8,3);
+  lcd.setCursor(9,3);
   lcd.print("Back");
 
-  if(refreshLCD==true)
+  if(refreshLCD == true)
   {
     UpdateStateOneCursor();
     refreshLCD = false; 
   }
-  
-  if(selectYes==true)
+
+  if(selectYes == true)
   {
     state = 2;
     heatingTimer.start();
     lcd.clear();
+    selectYes = false;
   }
 
-  if(selectBack==true)
+  if(selectBack == true)
   {
     state = 0;
+    ResetAllSelection();
     lcd.clear();
+    selectBack = false;
   }
 }
 
@@ -289,7 +299,7 @@ void DisplayHeating()
   }
 
   // Finish the heating process when the temperature is at the set point
-  if(temp >= 50)
+  if(temp >= 900)
   {
     lcd.clear();
     lcd.setCursor(0, 0);

@@ -15,4 +15,4 @@ void Rotate();
 void PushButton();
 void UpdateSelection();
 void UpdateStateOneCursor();
-
+void ResetAllSelection();
