@@ -15,7 +15,7 @@ float GetTemperature()
   float temp[3] = {};
   for (int i = 0; i < 3; i++)
   {
-    voltage = val[i] * (5.0 / 1023.0);
+    voltage = val[i] * (4.72 / 1023.0);
     temp[i] = (voltage - 1.25) / 0.005;
   }
 
@@ -36,19 +36,9 @@ float GetTemperature()
 // Making the sure the 3 temperature sensor have similar readings. The difference  needs to be within 5 degree celcius
 bool CompareSensorReading(float temp1, float temp2, float temp3)
 {
-  Serial.println(temp1);
-  Serial.println(temp2);
-  Serial.println(temp3);
-  Serial.print("\n");
-
   if((abs(temp1 - temp2) && abs(temp1 - temp3) && abs(temp2 - temp3)) <= 5)
   {
-    Serial.println("True");
-    delay(2000);
     return true;
   }
-
-  Serial.println("False");
-  delay(2000);
   return false;
 }

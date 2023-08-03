@@ -108,8 +108,8 @@ void setup()
   // Clear the LED for next page
   lcd.clear();
 
-  // Set the maximum speed to 150
-  spoolStepper.setMaxSpeed(200);
+  // Set the maximum speed to 100
+  spoolStepper.setMaxSpeed(100);
 
   // Set the current motor position to 0
   spoolStepper.setCurrentPosition(0);
@@ -341,7 +341,7 @@ void DisplayHeating()
     }
 
   // Finish the heating process and start spooling the filament
-  if (temp >= 999)
+  if (temp >= 100)
   {
     lcd.print("heating is done");
     state = 3;

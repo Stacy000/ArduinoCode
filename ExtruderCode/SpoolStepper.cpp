@@ -14,7 +14,7 @@ bool motorHoming = true;
 bool spoolForward = false;
 bool spoolBackward = false;
 
-int state = 0;
+int state = 999;
 
 bool startMotor = false;
 
@@ -28,12 +28,12 @@ void Homing() {
 }
 
 void Prepare() {
-  spoolStepper.setMaxSpeed(150);
+  spoolStepper.setMaxSpeed(100);
   spoolStepper.setAcceleration(500);
-  spoolStepper.moveTo(1300);
+  spoolStepper.moveTo(1200);
   spoolStepper.run();
 
-  if (spoolStepper.currentPosition() == 1300) {
+  if (spoolStepper.currentPosition() == 1200) {
     motorBackward = false;
     spoolForward = true;
     lcd.clear();
@@ -44,10 +44,10 @@ void Prepare() {
 void SpoolingFoward() {
   spoolStepper.setMaxSpeed(50);
   spoolStepper.setAcceleration(800);
-  spoolStepper.moveTo(2300);
+  spoolStepper.moveTo(2100);
   spoolStepper.run();
 
-  if (spoolStepper.currentPosition() == 2300) {
+  if (spoolStepper.currentPosition() == 2100) {
     spoolForward = false;
     spoolBackward = true;
     //spoolStepper.stop();
@@ -57,10 +57,10 @@ void SpoolingFoward() {
 void SpoolingBackward() {
   spoolStepper.setMaxSpeed(50);
   spoolStepper.setAcceleration(800);
-  spoolStepper.moveTo(1300);
+  spoolStepper.moveTo(1200);
   spoolStepper.run();
 
-  if (spoolStepper.currentPosition() == 1300) {
+  if (spoolStepper.currentPosition() == 1200) {
     spoolBackward = false;
     spoolForward = true;
     //spoolStepper.stop();

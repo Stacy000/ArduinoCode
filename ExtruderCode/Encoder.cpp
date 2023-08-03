@@ -150,7 +150,7 @@ void Rotate()
   int i = digitalRead(encoderDT);
   //Serial.println(i);
 
-  //Serial.print("FALLING");
+  Serial.println("FALLING");
   //Serial.print("\n");
   if(state == 0)
   {
