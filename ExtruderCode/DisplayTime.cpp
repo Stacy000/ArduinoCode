@@ -29,6 +29,8 @@ void DisplayTime()
   {
     timeInMin = timeInSec / 60;
     timeInSec = timeInSec - timeInMin * 60;
+    lcd.setCursor(12,3);
+    lcd.print(" ");
   }
   lcd.setCursor(5,3);
   lcd.print(timeInMin);
@@ -36,5 +38,6 @@ void DisplayTime()
   lcd.print("min ");
   lcd.setCursor(11,3);
   lcd.print(timeInSec);
+  lcd.setCursor(13,3);
   lcd.print("s");
 }

@@ -3,6 +3,7 @@
 #include "SpoolStepper.h"
 #include "TemperatureReading.h"
 #include "MainStepper.h"
+#include "fan.h"
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 
@@ -13,6 +14,9 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 bool dcDecreasing = true;
 int currentSelection = -1;
 float preHeatingTemp = 0;
+
+#define cancelButton 18
+bool cancelSystem = false;
 
 // Get the user defined type variables across files
 extern Timer heatingTimer;
@@ -43,7 +47,7 @@ extern int setPointPETE;
 
 // Define unused pins
 int unusedPins[]= {0,1,4,5,7,12,13,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,15,16,17,18,22,23,24,25,
-                    26,27,28,29,30 ,32,33,34,35,37,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53};
+                    26,27,28,29,30 ,32,33,34,35,37,39,40,41,42,50,51,52,53};
 
 // Define variables
 volatile unsigned long lastRefresh = 0;
@@ -63,6 +67,17 @@ void setup()
   digitalWrite(DC1, LOW);
   digitalWrite(DC2, HIGH);
 
+  // Set the four fans
+  pinMode(fanIn1, OUTPUT);
+  pinMode(fanIn2, OUTPUT);
+  pinMode(fanIn3, OUTPUT);
+  pinMode(fanIn4, OUTPUT);
+
+  // Set the three pins for LEDs
+  pinMode(red, OUTPUT);
+  pinMode(yellow, OUTPUT);
+  pinMode(green, OUTPUT);
+  
   // Set the other limit switch signal as input; the pin is at high state by default
   pinMode(LS, INPUT_PULLUP);
 
@@ -85,6 +100,7 @@ void setup()
   // Define the interrupt functions
   attachInterrupt(digitalPinToInterrupt(encoderCLK), Rotate, FALLING);
   attachInterrupt(digitalPinToInterrupt(encoderSW), PushButton, FALLING);
+  attachInterrupt(digitalPinToInterrupt(cancelButton), CancelSystem, HIGH);
   
   // int stat = digitalRead(LS);
   // Serial.println(stat);
@@ -115,6 +131,7 @@ void setup()
   spoolStepper.setCurrentPosition(0);
   lcd.setCursor(0, 0);
   lcd.print("Homing");
+  digitalWrite(yellow, HIGH);
 }
 
 void loop() {
@@ -175,11 +192,14 @@ void loop() {
   // State stays at 3 when the main motor is running
   if(state == 3)
   {
+    digitalWrite(yellow, LOW);
+    digitalWrite(green, HIGH);
     lcd.setCursor(0,0); 
     lcd.print("Spooling...");
     DisplayTime();
     lcd.setCursor(0,1);
     lcd.print("Start motor");
+    TurnOnFan();
   }
  
   if(startMotor == true)
@@ -194,6 +214,31 @@ void loop() {
       {
         SpoolingBackward();
       }
+  }
+
+  if(cancelSystem == true)
+  {
+    digitalWrite(green,LOW);
+    digitalWrite(red, HIGH);
+    if(state == -1)
+    {
+      lcd.clear();
+      state = -2;
+    }
+    lcd.setCursor(0, 0);
+    lcd.print("Cancelling");
+    lcd.setCursor(0, 1);
+    lcd.print("Do not leave until");
+    lcd.setCursor(0, 2);
+    lcd.print("Cools down");
+
+    spoolStepper.stop();
+    analogWrite(DC_EnB, 0);
+
+    // Start cooling down the temperature
+    // Stop the main stepper motor when nothing is spooling out of the extruder
+
+    TurnOffFan();
   }
 }
 
@@ -348,4 +393,30 @@ void DisplayHeating()
     lcd.clear();
     spoolingTimer.start();
   }
+}
+
+void TurnOnFan()
+{
+  digitalWrite(fanIn1, HIGH);
+  digitalWrite(fanIn2, LOW);
+  digitalWrite(fanIn3, HIGH);
+  digitalWrite(fanIn4, LOW);
+}
+
+void TurnOffFan()
+{
+  digitalWrite(fanIn1, LOW);
+  digitalWrite(fanIn2, LOW);
+  digitalWrite(fanIn3, LOW);
+  digitalWrite(fanIn4, LOW);
+}
+
+
+void CancelSystem()
+{
+  state = -1;
+  cancelSystem = true;
+  startMotor = false;
+  //lcd.clear();
+  Serial.print("Hello");
 }

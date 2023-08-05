@@ -38,6 +38,7 @@ void Prepare() {
     spoolForward = true;
     lcd.clear();
     state = 0;
+    spoolStepper.stop();
   }
 }
 
@@ -78,8 +79,7 @@ void stopMotor() {
     if(state==999)
     {
       spoolStepper.stop();
-      Serial.print("Switch pressed");
-      Serial.write("\n");
+      //Serial.println("Switch pressed");
       // Update the last interrupt time
       lastInterruptTime = currentMillis;
       spoolStepper.setCurrentPosition(0);
