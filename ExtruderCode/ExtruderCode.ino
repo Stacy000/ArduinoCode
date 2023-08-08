@@ -154,6 +154,7 @@ void loop() {
   // Allow the user to select the material 
   if(state == 0)
   {
+    StepperIdle();
     DisplayMaterialSelection();
 
     // refreshLCD is true only when the interrupts are triggered
@@ -233,6 +234,9 @@ void loop() {
     lcd.print("Cools down");
 
     spoolStepper.stop();
+
+    // Set all the pins of the motor to LOW to avoid overheating the L298N module
+    StepperIdle();
     analogWrite(DC_EnB, 0);
 
     // Start cooling down the temperature
@@ -419,4 +423,13 @@ void CancelSystem()
   startMotor = false;
   //lcd.clear();
   Serial.print("Hello");
+}
+
+// Rest the stepper motor driver
+void StepperIdle()
+{
+  digitalWrite(8, LOW);
+  digitalWrite(9, LOW);
+  digitalWrite(10, LOW);
+  digitalWrite(11, LOW);
 }

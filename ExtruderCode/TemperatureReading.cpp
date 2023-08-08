@@ -15,7 +15,7 @@ float GetTemperature()
   float temp[3] = {};
   for (int i = 0; i < 3; i++)
   {
-    voltage = val[i] * (4.72 / 1023.0);
+    voltage = val[i] * (5 / 1023.0);
     temp[i] = (voltage - 1.25) / 0.005;
   }
 

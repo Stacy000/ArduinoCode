@@ -13,9 +13,9 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
    val = analogRead(tempPin1);  
-   float voltage= val * (5.0 / 1023.0);   
+   float voltage= val * (5 / 1023.0);   
+   Serial.println(voltage);
    float temp=(voltage - 1.25) / 0.005;
-   Serial.print(temp);
-   Serial.print("\n");
+   Serial.println(temp);
    delay(1000);
-}
+ 
