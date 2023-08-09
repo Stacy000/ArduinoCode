@@ -56,7 +56,8 @@ const unsigned long refresehInterval = 1000;
 void setup() 
 {
   Serial.begin(4800);
-  // put your setup code here, to run once:
+
+  // Set the rotary encoder
   pinMode(encoderCLK, INPUT_PULLUP);
   pinMode(encoderDT, INPUT_PULLUP);
   pinMode(encoderSW, INPUT_PULLUP);
@@ -85,9 +86,8 @@ void setup()
   pinMode(pulseNeg, OUTPUT);
   pinMode(directionNeg, OUTPUT);
 
-  int size= sizeof(unusedPins)/sizeof(int);
-
   // Set the unused pins to Output LOW signal
+  int size= sizeof(unusedPins)/sizeof(int);
   for(int i = 0; i < size; i++)
   {
     pinMode(unusedPins[i], OUTPUT);
@@ -154,7 +154,10 @@ void loop() {
   // Allow the user to select the material 
   if(state == 0)
   {
+    // halt the stepper motor to avoid overheating
     StepperIdle();
+
+    // Display the menu for the user to select material
     DisplayMaterialSelection();
 
     // refreshLCD is true only when the interrupts are triggered
@@ -205,16 +208,16 @@ void loop() {
  
   if(startMotor == true)
   {
-      RunDCMotor();
-      if(spoolForward == true)
-      {
-        SpoolingFoward();
-      }
+    RunDCMotor();
+    if(spoolForward == true)
+    {
+      SpoolingFoward();
+    }
 
-      if(spoolBackward == true) 
-      {
-        SpoolingBackward();
-      }
+    if(spoolBackward == true) 
+    {
+      SpoolingBackward();
+    }
   }
 
   if(cancelSystem == true)

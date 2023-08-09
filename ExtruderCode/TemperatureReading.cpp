@@ -15,10 +15,10 @@ float GetTemperature()
   float temp[3] = {};
   for (int i = 0; i < 3; i++)
   {
-    voltage = val[i] * (5 / 1023.0);
-    temp[i] = (voltage - 1.25) / 0.005;
+    voltage = val[i] * (5 / 1023.0) + 0.015;
+    temp[i] = (voltage - 1.21) / 0.005;
   }
-
+  Serial.println(voltage);
   if(CompareSensorReading(temp[0], temp[1], temp[2]) == true)
   {
     float tempAvg = (temp[0] + temp[1] + temp[2]) / 3;
