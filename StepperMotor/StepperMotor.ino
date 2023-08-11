@@ -3,41 +3,71 @@
 #include <stdio.h>
 
 // Define the pins
-int pulseNeg = 7;
-int directionNeg = 8;
-//int enableNeg = 10;
+int pulseNeg = 12;
+int directionNeg = 13;
+int enableNeg = 10;
+
+bool pulseActive = false;
+unsigned long previousTime = 0;
 
 // Define variables
 int pulsePerRev=200;
 int rpm=30;
 
 // Get pulse period
-int getSleepTime(int pulsePerRev, int rpm) {
+float getSleepTime() {
 
-  int pulsePerSec=rpm/60*pulsePerRev;
-  int sleepTime=1/pulsePerSec;
-
+  float pulsePerSec=rpm/60*pulsePerRev;
+  Serial.print("hi");
+  float sleepTime = 1000/pulsePerSec;
+  Serial.print("why");
   return sleepTime;
 }
-int sleepTime;
+float sleepTime;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   
   pinMode(pulseNeg, OUTPUT);
   pinMode(directionNeg, OUTPUT);
+  pinMode(enableNeg, OUTPUT);
+
+  digitalWrite(enableNeg, LOW);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  runMotor();
+//   // put your main code here, to run repeatedly:
+//   sleepTime = getSleepTime();
+//   digitalWrite(enableNeg, HIGH);
+//  //delayMicroseconds(100);
+//   digitalWrite(directionNeg, HIGH);
+//   digitalWrite(pulseNeg, HIGH);
+//   delayMicroseconds(sleepTime);
+//   digitalWrite(pulseNeg, LOW);
+//   //delayMicroseconds(2800);
+//   Serial.println(pulseNeg);
+//   delayMicroseconds(sleepTime);
   
- //delayMicroseconds(100);
+}
+
+void runMotor()
+{
   digitalWrite(directionNeg, HIGH);
-  digitalWrite(pulseNeg, HIGH);
-  delayMicroseconds(200);
-  digitalWrite(pulseNeg, LOW);
-  //delayMicroseconds(2800);
-  Serial.println(pulseNeg);
-  delayMicroseconds(200);
-  
+  digitalWrite(enableNeg, HIGH);
+
+  unsigned long currentTime = millis();
+
+  if (digitalRead(pulseNeg) == HIGH && currentTime - previousTime >= 10) {
+    digitalWrite(pulseNeg, LOW);
+    //Serial.println("low");
+  }
+
+  if (currentTime - previousTime >= 20) {
+    // Generate a pulse
+    digitalWrite(pulseNeg, HIGH);
+    //Serial.println("high");
+    previousTime = currentTime;
+  }
+
 }

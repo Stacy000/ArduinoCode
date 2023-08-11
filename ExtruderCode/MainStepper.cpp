@@ -1,32 +1,35 @@
 #include "MainStepper.h"
 
 // Define variables
-int pulsePerRev=200;
-int rpm=30;
-int sleepTime;
-unsigned long lastStepTime = 0;
+int pulsePerRev = 200;
+int rpm = 30;
+unsigned long previousTime = 0;
 
 // Get pulse period
-int getSleepTime(int pulsePerRev, int rpm) {
+float GetSleepTime() {
+  float pulsePerSec = rpm / 60 * pulsePerRev;
 
-  int pulsePerSec=rpm/60*pulsePerRev;
-  int sleepTime=1/pulsePerSec;
-  return sleepTime;
+  return 1000/pulsePerSec;
 }
 
-void RunMainStepper(int sleepTime)
-{
-  //Set the direction of the main motor
-  digitalWrite(directionNeg, HIGH);
+// void RunMainStepper()
+// {
+//   //Set the direction of the main motor
+//   digitalWrite(directionNeg, HIGH);
+//   digitalWrite(enableNeg, HIGH);
 
-  unsigned long currentMillis = millis();
+//   unsigned long currentTime = millis();
+//   //Serial.print("hi");
+//   if (digitalRead(pulseNeg) == HIGH && currentTime - previousTime >= 10) 
+//   {
+//     digitalWrite(pulseNeg, LOW);
+//     Serial.println(digitalRead(pulseNeg));
+//   }
 
-  if ((currentMillis - lastStepTime) >= sleepTime) 
-  {
-    digitalWrite(pulseNeg, HIGH);
-    //delayMicroseconds(sleepTime);
-    digitalWrite(pulseNeg, LOW);
-    Serial.println(pulseNeg);
-    //delayMicroseconds(sleepTime);
-  } 
-}
+//   if (currentTime - previousTime >= 20) {
+//     // Generate a pulse
+//     digitalWrite(pulseNeg, HIGH);
+//     Serial.println(digitalRead(pulseNeg));
+//     previousTime = currentTime;
+//   }  
+//}

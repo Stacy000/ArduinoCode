@@ -1,10 +1,10 @@
 #include <Arduino.h>
 
 // Define the pins
-#define pulseNeg 7
-#define directionNeg 8
-//int enableNeg = 10;
+#define pulseNeg 4
+#define directionNeg 5
+#define enableNeg 7
 
 // Get pulse period
-int getSleepTime(int pulsePerRev, int rpm);
-void RunMainStepper(int sleepTime);
+float GetSleepTime();
+//void RunMainStepper();

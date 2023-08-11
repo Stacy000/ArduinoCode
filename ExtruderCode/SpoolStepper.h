@@ -8,6 +8,4 @@ void Homing();
 void Prepare();
 void SpoolingFoward();
 void SpoolingBackward();
-//void RunDCMotor();
 void stopMotor();
-
