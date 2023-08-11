@@ -6,5 +6,5 @@
 #define enableNeg 7
 
 // Get pulse period
-float GetSleepTime();
-//void RunMainStepper();
+double GetSleepTime();
+void RunMainStepper(double sleepTime);

@@ -56,7 +56,7 @@ int unusedPins[]= {0,1,4,5,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,15,16,17
 // Define variables
 volatile unsigned long lastRefresh = 0;
 const unsigned long refresehInterval = 1000;
-float sleepTime;
+double sleepTime;
 
 void setup() 
 {
@@ -137,7 +137,7 @@ void setup()
   spoolStepper.setMaxSpeed(100);
 
   sleepTime = GetSleepTime();
-  //Serial.print("hi");
+  Serial.print(sleepTime);
 
   // Set the current motor position to 0
   spoolStepper.setCurrentPosition(0);
@@ -208,7 +208,7 @@ void loop() {
   // State stays at 3 when the main motor is running
   if(state == 3)
   {
-     RunMainStepper();
+    RunMainStepper(sleepTime);
     digitalWrite(yellow, LOW);
     digitalWrite(green, HIGH);
     lcd.setCursor(0,0); 
@@ -448,26 +448,4 @@ void StepperIdle()
   digitalWrite(9, LOW);
   digitalWrite(10, LOW);
   digitalWrite(11, LOW);
-}
-
-void RunMainStepper()
-{
-  //Set the direction of the main motor
-  digitalWrite(directionNeg, LOW);
-  digitalWrite(enableNeg, HIGH);
-
-  unsigned long currentTime = millis();
-  //Serial.print("hi");
-  if (digitalRead(pulseNeg) == HIGH && currentTime - previousTime >= 10) 
-  {
-    digitalWrite(pulseNeg, LOW);
-    //Serial.println(digitalRead(pulseNeg));
-  }
-
-  if (currentTime - previousTime >= 20) {
-    // Generate a pulse
-    digitalWrite(pulseNeg, HIGH);
-    //Serial.println(digitalRead(pulseNeg));
-    previousTime = currentTime;
-  }  
 }
