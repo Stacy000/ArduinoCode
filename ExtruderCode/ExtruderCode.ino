@@ -138,7 +138,7 @@ void setup()
   spoolStepper.setMaxSpeed(100);
 
   sleepTime = GetSleepTime();
-  Serial.print(sleepTime);
+  //Serial.print(sleepTime);
 
   // Set the current motor position to 0
   spoolStepper.setCurrentPosition(0);
@@ -191,6 +191,8 @@ void loop() {
   // Display the user select material
   if(state == 1)
   {
+    // halt the stepper motor to avoid overheating
+    StepperIdle();
     if(selectNext == true)
     {
       lcd.clear();
@@ -203,6 +205,8 @@ void loop() {
   // State becomes 3 when the heating process is done
   if(state == 2)
   {
+     // halt the stepper motor to avoid overheating
+    StepperIdle();
     TurnOnHeater();
     DisplayHeating();
   }
