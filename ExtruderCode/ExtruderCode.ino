@@ -3,7 +3,8 @@
 #include "SpoolStepper.h"
 #include "TemperatureReading.h"
 #include "MainStepper.h"
-#include "fan.h"
+#include "Fan.h"
+#include "Heater.h"
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 
@@ -202,6 +203,7 @@ void loop() {
   // State becomes 3 when the heating process is done
   if(state == 2)
   {
+    TurnOnHeater();
     DisplayHeating();
   }
 
@@ -406,31 +408,15 @@ void DisplayHeating()
     }
 
   // Finish the heating process and start spooling the filament
-  if (temp >= 100)
+  if (temp >= 60)
   {
     lcd.print("heating is done");
+    TurnOffHeater();
     state = 3;
     lcd.clear();
     spoolingTimer.start();
   }
 }
-
-void TurnOnFan()
-{
-  digitalWrite(fanIn1, HIGH);
-  digitalWrite(fanIn2, LOW);
-  digitalWrite(fanIn3, HIGH);
-  digitalWrite(fanIn4, LOW);
-}
-
-void TurnOffFan()
-{
-  digitalWrite(fanIn1, LOW);
-  digitalWrite(fanIn2, LOW);
-  digitalWrite(fanIn3, LOW);
-  digitalWrite(fanIn4, LOW);
-}
-
 
 void CancelSystem()
 {

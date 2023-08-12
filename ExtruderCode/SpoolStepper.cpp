@@ -14,7 +14,7 @@ bool motorHoming = true;
 bool spoolForward = false;
 bool spoolBackward = false;
 
-int state = 3;
+int state = 999;
 
 bool startMotor = false;
 
