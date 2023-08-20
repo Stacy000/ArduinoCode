@@ -84,6 +84,9 @@ void setup()
   pinMode(red, OUTPUT);
   pinMode(yellow, OUTPUT);
   pinMode(green, OUTPUT);
+
+  // Set the relay
+  pinMode(relay1, OUTPUT);
   
   // Set the other limit switch signal as input; the pin is at high state by default
   pinMode(LS, INPUT_PULLUP);
