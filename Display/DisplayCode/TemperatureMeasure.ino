@@ -1,8 +1,8 @@
-int tempPin1=A0;
-int tempPin2=A1;
-int tempPin3=A2;
+extern int tempPin1;
+extern int tempPin2;
+extern int tempPin3;
 
-int val = 0;
+extern int val;
 
 // Get the readings from the thermocouple, and convert the readings to voltage first, then temperature in degree celsius 
 float GetTemperature()

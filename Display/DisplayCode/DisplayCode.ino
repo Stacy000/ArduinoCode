@@ -1,15 +1,17 @@
 #include <Timer.h>
+
 // Libraries
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 
-// Define pins
-#define encoderCLK 3 //Interrupt pin
-#define encoderDT 10
-#define encoderSW 2 //Interrupt pin
-
 // Set the LCD address to 0x27 for a 16 chars and 2 line display
 LiquidCrystal_I2C lcd(0x27,20,4);
+
+extern int state;
+
+extern int encoderCLK; //Interrupt pin
+extern int encoderDT;
+extern int encoderSW; //Interrupt pin
 
 // Define variables for material selection state (state 0)
 int menuCounter = 0;
@@ -19,11 +21,25 @@ bool selectPET = false;
 bool selectPETE =false;
 bool selectNext = false;
 
-int state = 0;
+extern bool refreshLCD;
+extern bool refreshSelection;
+extern bool clearSelection;
 
-bool refreshLCD = true;
-bool refreshSelection = false;
-bool clearSelection = false;
+void SetUpLCD()
+{
+  lcd.init();
+  lcd.backlight();
+
+  // Display the welcome page
+  lcd.setCursor(0,0); 
+  lcd.print("WELCOME");
+  lcd.setCursor(0,1); 
+  lcd.print("Test Version"); 
+  delay(2000); //wait 2 sec
+
+  // Clear the LED for next page
+  ClearLCD();
+}
 
 // Clear the lcd screen
 void ClearLCD()
@@ -149,7 +165,7 @@ void rotate()
 {
   //Serial.print("FALLING");
   //Serial.print("\n");
-  int i= digitalRead(encoderDT);
+  int i = digitalRead(encoderDT);
 
   // Serial.print(i);
   // Serial.print("\n");
@@ -183,7 +199,7 @@ void rotate()
 // Update the selection marker everytime the push button is pressed
 void pushButton()
 {
-  Serial.print("Button pressed!");  
+  //Serial.print("Button pressed!");  
 
   if(menuCounter==4)
   {
