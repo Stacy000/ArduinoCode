@@ -14,7 +14,7 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 #define DC_EnB 6
 bool dcDecreasing = true;
 int currentSelection = -1;
-float preHeatingTemp = 0;
+double preHeatingTemp = 0;
 
 #define cancelButton 18
 bool cancelSystem = false;
@@ -46,6 +46,9 @@ extern int setPointPETG;
 extern int setPointPLA;
 extern int setPointPETE;
 
+// Get the heater variables
+extern bool steadyState;
+
 extern int rpm;
 extern int pulsePerRev;
 extern unsigned long previousTime;
@@ -58,10 +61,14 @@ int unusedPins[]= {0,1,4,5,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,15,16,17
 volatile unsigned long lastRefresh = 0;
 const unsigned long refresehInterval = 1000;
 double sleepTime;
+bool startPID = false;
 
 void setup() 
 {
   Serial.begin(4800);
+
+  // Set the reference voltage of analog pin to 2.56V
+  analogReference(INTERNAL2V56);
 
   // Set the rotary encoder
   pinMode(encoderCLK, INPUT_PULLUP);
@@ -87,6 +94,8 @@ void setup()
 
   // Set the relay
   pinMode(relay1, OUTPUT);
+  pinMode(relay2, OUTPUT);
+  pinMode(relay3, OUTPUT);
   
   // Set the other limit switch signal as input; the pin is at high state by default
   pinMode(LS, INPUT_PULLUP);
@@ -123,6 +132,8 @@ void setup()
   // stat = digitalRead(LS);
   // Serial.println(stat);
 
+  // Setup the parameters for PID controller
+  SetUpPID();
   //Set up the lcd
   lcd.init();
   lcd.backlight();
@@ -208,10 +219,40 @@ void loop() {
   // State becomes 3 when the heating process is done
   if(state == 2)
   {
-     // halt the stepper motor to avoid overheating
-    StepperIdle();
-    TurnOnHeater();
+    // halt the stepper motor to avoid overheating
+    StepperIdle(); 
     DisplayHeating();
+    startPID = true;
+
+    // The extruder starts to spool filament when the temperature inside the extruder reaches steady state
+    if(steadyState == true)
+    {
+      state = 3;
+      lcd.clear();
+      spoolingTimer.start();
+    }
+  }
+
+  if(startPID == true)
+  {
+    switch(currentSelection)
+    {
+      case 0:
+      RunPID(setPointABS);
+      break;
+      
+      case 1:
+      RunPID(setPointPETG);
+      break;
+
+      case 2:
+      RunPID(setPointPLA);
+      break;
+
+      case 3:
+      RunPID(setPointPETE);
+      break;
+    }
   }
 
   // State stays at 3 when the main motor is running
@@ -362,17 +403,11 @@ void DisplayUserSelection()
 void DisplayHeating()
 {
   unsigned long currentTime = millis();
-  float temp = GetTemperature();
+
+  double temp = GetTemperature();
+
   if((currentTime - lastRefresh) >= refresehInterval) // Re-print the temperature reading on the lcd every 1s
   {
-    // if(temp == 0)
-    // {
-    //   lcd.setCursor(0, 0);
-    //   lcd.print("CHECK TEMP SENSOR");
-    // }
-
-    // else
-    // {
       lcd.setCursor(0,0);
       lcd.print("SP = ");
       lcd.setCursor(0,1);
@@ -387,42 +422,32 @@ void DisplayHeating()
       {
         case 0:
         lcd.print(setPointABS);
-        preHeatingTemp = setPointABS - 10;
+        //preHeatingTemp = setPointABS - 10;
         break;
         
         case 1:
         lcd.print(setPointPETG);
-        preHeatingTemp = setPointPETG - 10;
+        //preHeatingTemp = setPointPETG - 10;
         break;
 
         case 2:
         lcd.print(setPointPLA);
-        preHeatingTemp = setPointPLA - 10;
+        //preHeatingTemp = setPointPLA - 10;
         break;
 
         case 3:
         lcd.print(setPointPETE);
-        preHeatingTemp = setPointPETE - 10;
+        //preHeatingTemp = setPointPETE - 10;
         break;
 
         default: 
-        Serial.println(currentSelection);
+        //Serial.println(currentSelection);
         break;
       }
 
       DisplayTime();
       lastRefresh = currentTime;
     }
-
-  // Finish the heating process and start spooling the filament
-  if (temp >= 60)
-  {
-    lcd.print("heating is done");
-    TurnOffHeater();
-    state = 3;
-    lcd.clear();
-    spoolingTimer.start();
-  }
 }
 
 void CancelSystem()
@@ -430,8 +455,6 @@ void CancelSystem()
   state = -1;
   cancelSystem = true;
   startMotor = false;
-  //lcd.clear();
-  Serial.print("Hello");
 }
 
 // Rest the stepper motor driver

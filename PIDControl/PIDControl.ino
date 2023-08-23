@@ -45,7 +45,7 @@ void setup() {
   windowStartTime = millis();
 
   // Define the set point for the PID controller
-  Setpoint = 600;
+  Setpoint = 610;
 
   //tell the PID to range between 0 and the full window size
   PID1.SetOutputLimits(0, WindowSize); 
@@ -67,6 +67,10 @@ void setup() {
 }
 
 void loop() {
+  if(millis()>1000000)
+  {
+    Setpoint = 630;
+  }
   Input1 = analogRead(A1);
   Input2 = analogRead(A2);
 
