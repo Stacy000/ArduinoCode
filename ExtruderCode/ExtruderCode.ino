@@ -5,6 +5,7 @@
 #include "MainStepper.h"
 #include "Fan.h"
 #include "Heater.h"
+#include "HallEffectSensor.h"
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 
@@ -12,6 +13,12 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 #define DC1 36
 #define DC2 38
 #define DC_EnB 6
+
+// Define pin for LEDs
+#define red 44
+#define yellow 46
+#define green 48
+
 bool dcDecreasing = true;
 int currentSelection = -1;
 double preHeatingTemp = 0;
@@ -55,7 +62,7 @@ extern unsigned long previousTime;
 
 // Define unused pins
 int unusedPins[]= {0,1,4,5,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,15,16,17,18,22,23,24,25,
-                    26,27,28,29,30,32,33,34,35,37,39,40,41,42,50,51,52,53};
+                    26,27,28,29,30,32,33,34,35,37,39,40,41,42,52,53};
 
 // Define variables
 volatile unsigned long lastRefresh = 0;
@@ -105,6 +112,10 @@ void setup()
   pinMode(directionNeg, OUTPUT);
   pinMode(enableNeg, OUTPUT);
 
+  // Set the hall effect sensor
+  pinMode(LED_hallEffect, OUTPUT);
+  pinMode(hallEffectSensor, INPUT);
+
   // Disable the main motor to avoid interference
   digitalWrite(enableNeg, LOW);
 
@@ -143,7 +154,7 @@ void setup()
   lcd.print("WELCOME");
   lcd.setCursor(0,1); 
   lcd.print("Test Version"); 
-  delay(2000); //wait 2 sec
+  delay(5000); //wait 2 sec
 
   // Clear the LED for next page
   lcd.clear();
@@ -219,10 +230,14 @@ void loop() {
   // State becomes 3 when the heating process is done
   if(state == 2)
   {
+    // Start to heat up the extruder
+    startPID = true;
+
     // halt the stepper motor to avoid overheating
     StepperIdle(); 
+
+    // Display temperature on the lcd durig the heating process
     DisplayHeating();
-    startPID = true;
 
     // The extruder starts to spool filament when the temperature inside the extruder reaches steady state
     if(steadyState == true)
@@ -233,6 +248,7 @@ void loop() {
     }
   }
 
+  // Start heating up the extruder to the set point temperature using PI controller
   if(startPID == true)
   {
     switch(currentSelection)
@@ -266,6 +282,9 @@ void loop() {
     DisplayTime();
     lcd.setCursor(0,1);
     lcd.print("Start motor");
+
+    // TODO: display the diameter on the lcd
+
     TurnOnFan();
   }
  
@@ -328,7 +347,6 @@ void RunDCMotor()
         dcDecreasing = false;
         break;
       }
-      //Serial.println(dcSpeed);
     }
   }
 

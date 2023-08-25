@@ -9,11 +9,12 @@ double Input2, Output2;
 double Kp1=300, Ki1=0.1, Kd1=0;
 double Kp2=700, Ki2=0.5, Kd2=0;
 
+// Define the two PID controllers
 PID PID1(&Input1, &Output1, &Setpoint, Kp1, Ki1, Kd1, DIRECT);
 PID PID2(&Input2, &Output2, &Setpoint, Kp2, Ki2, Kd2, DIRECT);
 
-int WindowSize = 5000;
-unsigned long windowStartTime;
+int windowSize = 5000;
+volatile unsigned long windowStartTime;
 bool steadyState = false;
 int steadyCount = 0;
 
@@ -21,14 +22,20 @@ int steadyCount = 0;
 volatile unsigned long lastPID = 0;
 volatile unsigned long lastSaveTime = 0;
 
+// Function to turn on heaters
 void TurnOnHeater()
 {
   digitalWrite(relay1, HIGH);
+  digitalWrite(relay2, HIGH);
+  digitalWrite(relay3, HIGH);
 }
 
+// Function to turn off heaters
 void TurnOffHeater()
 {
   digitalWrite(relay1, LOW);
+  digitalWrite(relay2, LOW);
+  digitalWrite(relay3, LOW);
 }
 
 // Set up all neccesary parameters for PID controller
@@ -44,15 +51,15 @@ void SetUpPID()
   // Setpoint = 610;
 
   //tell the PID to range between 0 and the full window size
-  PID1.SetOutputLimits(0, WindowSize); 
-  PID2.SetOutputLimits(0, WindowSize); 
+  PID1.SetOutputLimits(0, windowSize); 
+  PID2.SetOutputLimits(0, windowSize); 
 
   //turn the PID on
   PID1.SetMode(AUTOMATIC);
   PID2.SetMode(AUTOMATIC);
 }
 
-// Run the PID
+// Run the PID controller
 void RunPID(int Setpoint)
 {
   Input1 = analogRead(tempPin1);
@@ -71,10 +78,10 @@ void RunPID(int Setpoint)
   /************************************************
    * turn the output pin on/off based on pid output
    ************************************************/
-  if (currentMillis - windowStartTime > WindowSize)
+  if (currentMillis - windowStartTime > windowSize)
   {
     //time to shift the Relay Window
-    windowStartTime += WindowSize;
+    windowStartTime += windowSize;
   }
 
   if (Output1 >= currentMillis - windowStartTime) 
