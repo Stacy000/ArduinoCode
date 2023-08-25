@@ -22,7 +22,7 @@ PID PID2(&Input2, &Output2, &Setpoint, Kp2, Ki2, Kd2, DIRECT);
 
 
 int WindowSize = 5000;
-unsigned long windowStartTime;
+volatile unsigned long windowStartTime;
 
 // Define variables
 volatile unsigned long lastPID = 0;
@@ -67,6 +67,10 @@ void setup() {
 }
 
 void loop() {
+  // if(millis()>2000000)
+  // {
+  //   Setpoint = 630;
+  // }
   Input1 = analogRead(A1);
   Input2 = analogRead(A2);
 

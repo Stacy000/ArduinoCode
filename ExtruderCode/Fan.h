@@ -5,9 +5,5 @@
 #define fanIn3 47
 #define fanIn4 49
 
-#define red 44
-#define yellow 46
-#define green 48
-
 void TurnOnFan();
 void TurnOffFan();

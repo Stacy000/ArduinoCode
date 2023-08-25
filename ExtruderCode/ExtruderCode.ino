@@ -5,6 +5,7 @@
 #include "MainStepper.h"
 #include "Fan.h"
 #include "Heater.h"
+#include "HallEffectSensor.h"
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 
@@ -12,9 +13,15 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 #define DC1 36
 #define DC2 38
 #define DC_EnB 6
+
+// Define pin for LEDs
+#define red 44
+#define yellow 46
+#define green 48
+
 bool dcDecreasing = true;
 int currentSelection = -1;
-float preHeatingTemp = 0;
+double preHeatingTemp = 0;
 
 #define cancelButton 18
 bool cancelSystem = false;
@@ -46,22 +53,29 @@ extern int setPointPETG;
 extern int setPointPLA;
 extern int setPointPETE;
 
+// Get the heater variables
+extern bool steadyState;
+
 extern int rpm;
 extern int pulsePerRev;
 extern unsigned long previousTime;
 
 // Define unused pins
 int unusedPins[]= {0,1,4,5,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,14,15,16,17,18,22,23,24,25,
-                    26,27,28,29,30,32,33,34,35,37,39,40,41,42,50,51,52,53};
+                    26,27,28,29,30,32,33,34,35,37,39,40,41,42,52,53};
 
 // Define variables
 volatile unsigned long lastRefresh = 0;
 const unsigned long refresehInterval = 1000;
 double sleepTime;
+bool startPID = false;
 
 void setup() 
 {
   Serial.begin(4800);
+
+  // Set the reference voltage of analog pin to 2.56V
+  analogReference(INTERNAL2V56);
 
   // Set the rotary encoder
   pinMode(encoderCLK, INPUT_PULLUP);
@@ -87,6 +101,8 @@ void setup()
 
   // Set the relay
   pinMode(relay1, OUTPUT);
+  pinMode(relay2, OUTPUT);
+  pinMode(relay3, OUTPUT);
   
   // Set the other limit switch signal as input; the pin is at high state by default
   pinMode(LS, INPUT_PULLUP);
@@ -95,6 +111,10 @@ void setup()
   pinMode(pulseNeg, OUTPUT);
   pinMode(directionNeg, OUTPUT);
   pinMode(enableNeg, OUTPUT);
+
+  // Set the hall effect sensor
+  pinMode(LED_hallEffect, OUTPUT);
+  pinMode(hallEffectSensor, INPUT);
 
   // Disable the main motor to avoid interference
   digitalWrite(enableNeg, LOW);
@@ -123,6 +143,8 @@ void setup()
   // stat = digitalRead(LS);
   // Serial.println(stat);
 
+  // Setup the parameters for PID controller
+  SetUpPID();
   //Set up the lcd
   lcd.init();
   lcd.backlight();
@@ -132,7 +154,7 @@ void setup()
   lcd.print("WELCOME");
   lcd.setCursor(0,1); 
   lcd.print("Test Version"); 
-  delay(2000); //wait 2 sec
+  delay(5000); //wait 2 sec
 
   // Clear the LED for next page
   lcd.clear();
@@ -208,10 +230,45 @@ void loop() {
   // State becomes 3 when the heating process is done
   if(state == 2)
   {
-     // halt the stepper motor to avoid overheating
-    StepperIdle();
-    TurnOnHeater();
+    // Start to heat up the extruder
+    startPID = true;
+
+    // halt the stepper motor to avoid overheating
+    StepperIdle(); 
+
+    // Display temperature on the lcd durig the heating process
     DisplayHeating();
+
+    // The extruder starts to spool filament when the temperature inside the extruder reaches steady state
+    if(steadyState == true)
+    {
+      state = 3;
+      lcd.clear();
+      spoolingTimer.start();
+    }
+  }
+
+  // Start heating up the extruder to the set point temperature using PI controller
+  if(startPID == true)
+  {
+    switch(currentSelection)
+    {
+      case 0:
+      RunPID(setPointABS);
+      break;
+      
+      case 1:
+      RunPID(setPointPETG);
+      break;
+
+      case 2:
+      RunPID(setPointPLA);
+      break;
+
+      case 3:
+      RunPID(setPointPETE);
+      break;
+    }
   }
 
   // State stays at 3 when the main motor is running
@@ -225,6 +282,9 @@ void loop() {
     DisplayTime();
     lcd.setCursor(0,1);
     lcd.print("Start motor");
+
+    // TODO: display the diameter on the lcd
+
     TurnOnFan();
   }
  
@@ -287,7 +347,6 @@ void RunDCMotor()
         dcDecreasing = false;
         break;
       }
-      //Serial.println(dcSpeed);
     }
   }
 
@@ -362,17 +421,11 @@ void DisplayUserSelection()
 void DisplayHeating()
 {
   unsigned long currentTime = millis();
-  float temp = GetTemperature();
+
+  double temp = GetTemperature();
+
   if((currentTime - lastRefresh) >= refresehInterval) // Re-print the temperature reading on the lcd every 1s
   {
-    // if(temp == 0)
-    // {
-    //   lcd.setCursor(0, 0);
-    //   lcd.print("CHECK TEMP SENSOR");
-    // }
-
-    // else
-    // {
       lcd.setCursor(0,0);
       lcd.print("SP = ");
       lcd.setCursor(0,1);
@@ -387,42 +440,32 @@ void DisplayHeating()
       {
         case 0:
         lcd.print(setPointABS);
-        preHeatingTemp = setPointABS - 10;
+        //preHeatingTemp = setPointABS - 10;
         break;
         
         case 1:
         lcd.print(setPointPETG);
-        preHeatingTemp = setPointPETG - 10;
+        //preHeatingTemp = setPointPETG - 10;
         break;
 
         case 2:
         lcd.print(setPointPLA);
-        preHeatingTemp = setPointPLA - 10;
+        //preHeatingTemp = setPointPLA - 10;
         break;
 
         case 3:
         lcd.print(setPointPETE);
-        preHeatingTemp = setPointPETE - 10;
+        //preHeatingTemp = setPointPETE - 10;
         break;
 
         default: 
-        Serial.println(currentSelection);
+        //Serial.println(currentSelection);
         break;
       }
 
       DisplayTime();
       lastRefresh = currentTime;
     }
-
-  // Finish the heating process and start spooling the filament
-  if (temp >= 60)
-  {
-    lcd.print("heating is done");
-    TurnOffHeater();
-    state = 3;
-    lcd.clear();
-    spoolingTimer.start();
-  }
 }
 
 void CancelSystem()
@@ -430,8 +473,6 @@ void CancelSystem()
   state = -1;
   cancelSystem = true;
   startMotor = false;
-  //lcd.clear();
-  Serial.print("Hello");
 }
 
 // Rest the stepper motor driver

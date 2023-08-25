@@ -13,7 +13,7 @@ void DisplayTime()
 {
   lcd.setCursor(0,3);
 
-  if(state==2)
+  if(state == 2)
   {
     timeInSec = heatingTimer.read()/1000;
   }
