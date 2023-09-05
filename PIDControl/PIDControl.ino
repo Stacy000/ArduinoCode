@@ -1,9 +1,10 @@
 #include <PID_v1.h>
 
 //Define pins and variables for temperature reading
-//#define tempPin1 A0
+#define tempPin1 A0
 #define tempPin2 A1
 #define tempPin3 A2
+
 #define relay1 7
 #define relay2 50
 #define relay3 51
@@ -11,14 +12,16 @@
 //Define Variables
 double Setpoint, Input1, Output1;
 double Input2, Output2;
-//double Input3, Output3;
+double Input3, Output3;
 
 //Specify the links and initial tuning parameters
 double Kp1=300, Ki1=0.1, Kd1=0;
 double Kp2=700, Ki2=0.5, Kd2=0;
+double Kp3=300, Ki3=0.1, Kd3=0;
+
 PID PID1(&Input1, &Output1, &Setpoint, Kp1, Ki1, Kd1, DIRECT);
 PID PID2(&Input2, &Output2, &Setpoint, Kp2, Ki2, Kd2, DIRECT);
-//PID PID3(&Input3, &Output3, &Setpoint, Kp, Ki, Kd, DIRECT);
+PID PID3(&Input3, &Output3, &Setpoint, Kp3, Ki3, Kd3, DIRECT);
 
 
 int WindowSize = 5000;
@@ -50,16 +53,16 @@ void setup() {
   //tell the PID to range between 0 and the full window size
   PID1.SetOutputLimits(0, WindowSize); 
   PID2.SetOutputLimits(0, WindowSize); 
-  //PID3.SetOutputLimits(0, WindowSize); 
+  PID3.SetOutputLimits(0, WindowSize); 
 
   //turn the PID on
   PID1.SetMode(AUTOMATIC);
   PID2.SetMode(AUTOMATIC);
-  //PID3.SetMode(AUTOMATIC);
+  PID3.SetMode(AUTOMATIC);
 
   Input1 = analogRead(A1); //tip
   Input2 = analogRead(A2); //end
-  //Input3 = analogRead(A0);
+  Input3 = analogRead(A0);
 
   PID1.Compute();
   PID2.Compute();
@@ -73,13 +76,14 @@ void loop() {
   // }
   Input1 = analogRead(A1);
   Input2 = analogRead(A2);
+  Input3 = analogRead(A3);
 
   unsigned long currentMillis = millis();
   if(currentMillis - lastPID >= 4000)
   {
     PID1.Compute();
     PID2.Compute();
-    //PID3.Compute();
+    PID3.Compute();
     lastPID=currentMillis;
   }
 
@@ -96,13 +100,11 @@ void loop() {
   if (Output1 >= currentMillis - windowStartTime) 
   {
     digitalWrite(relay1, HIGH);
-    digitalWrite(relay3, HIGH);
     //Serial.println("high");
   }
   else 
   {
     digitalWrite(relay1, LOW);
-    digitalWrite(relay3, LOW);
     //Serial.println("low");
   }
 
@@ -117,16 +119,16 @@ void loop() {
     //Serial.println("low");
   }
 
-  // if (Output3 >= currentMillis - windowStartTime) 
-  // {
-  //   digitalWrite(relay3, HIGH);
-  //   //Serial.println("high");
-  // }
-  // else 
-  // {
-  //   digitalWrite(relay3, LOW);
-  //   //Serial.println("low");
-  // }
+  if (Output3 >= currentMillis - windowStartTime) 
+  {
+    digitalWrite(relay3, HIGH);
+    //Serial.println("high");
+  }
+  else 
+  {
+    digitalWrite(relay3, LOW);
+    //Serial.println("low");
+  }
 
   // Get the data for time, output, relay state and input
   if ((currentMillis - lastSaveTime) >= 1000) 
@@ -145,14 +147,14 @@ void loop() {
     Serial.print("  ");
     Serial.print(digitalRead(relay2));
     Serial.print("  ");
-    Serial.println(Input2);
-    //Serial.print("  ");
+    Serial.print(Input2);
+    Serial.print("  ");
 
-    // Serial.print(Output3);
-    // Serial.print("  ");
-    // Serial.print(digitalRead(relay3));
-    // Serial.print("  ");
-    // Serial.println(Input3);
+    Serial.print(Output3);
+    Serial.print("  ");
+    Serial.print(digitalRead(relay3));
+    Serial.print("  ");
+    Serial.println(Input3);
     lastSaveTime = currentMillis;
   }
 }

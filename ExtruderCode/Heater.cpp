@@ -2,16 +2,19 @@
 #include "TemperatureReading.h"
 
 //Define Variables
-double Setpoint, Input1, Output1;
+double Setpoint1, Setpoint2, Setpoint3, Input1, Output1;
 double Input2, Output2;
+double Input3, Output3;
 
 //Specify the links and initial tuning parameters
 double Kp1=300, Ki1=0.1, Kd1=0;
 double Kp2=700, Ki2=0.5, Kd2=0;
+double Kp3=300, Ki3=0.1, Kd3=0;
 
 // Define the two PID controllers
-PID PID1(&Input1, &Output1, &Setpoint, Kp1, Ki1, Kd1, DIRECT);
-PID PID2(&Input2, &Output2, &Setpoint, Kp2, Ki2, Kd2, DIRECT);
+PID PID1(&Input1, &Output1, &Setpoint1, Kp1, Ki1, Kd1, DIRECT); //tip
+PID PID2(&Input2, &Output2, &Setpoint2, Kp2, Ki2, Kd2, DIRECT); //end
+PID PID3(&Input3, &Output3, &Setpoint3, Kp3, Ki3, Kd3, DIRECT); //middle
 
 int windowSize = 5000;
 volatile unsigned long windowStartTime;
@@ -48,15 +51,17 @@ void SetUpPID()
   windowStartTime = millis();
 
   // // Define the set point for the PID controller
-  // Setpoint = 610;
+  //Setpoint = 610;
 
   //tell the PID to range between 0 and the full window size
   PID1.SetOutputLimits(0, windowSize); 
   PID2.SetOutputLimits(0, windowSize); 
+  PID3.SetOutputLimits(0, windowSize); 
 
   //turn the PID on
   PID1.SetMode(AUTOMATIC);
   PID2.SetMode(AUTOMATIC);
+  PID3.SetMode(AUTOMATIC);
 }
 
 // Run the PID controller
@@ -64,6 +69,7 @@ void RunPID(int Setpoint)
 {
   Input1 = analogRead(tempPin1);
   Input2 = analogRead(tempPin2);
+  Input3 = analogRead(tempPin1);
 
   unsigned long currentMillis = millis();
 
@@ -71,7 +77,7 @@ void RunPID(int Setpoint)
   {
     PID1.Compute();
     PID2.Compute();
-    //PID3.Compute();
+    PID3.Compute();
     lastPID=currentMillis;
   }
 
@@ -86,14 +92,12 @@ void RunPID(int Setpoint)
 
   if (Output1 >= currentMillis - windowStartTime) 
   {
-    digitalWrite(relay1, HIGH);
-    digitalWrite(relay3, HIGH);
+    //digitalWrite(relay1, HIGH);
     //Serial.println("high");
   }
   else 
   {
-    digitalWrite(relay1, LOW);
-    digitalWrite(relay3, LOW);
+    //digitalWrite(relay1, LOW);
     //Serial.println("low");
   }
 
@@ -108,10 +112,21 @@ void RunPID(int Setpoint)
     //Serial.println("low");
   }
 
+  if (Output3 >= currentMillis - windowStartTime) 
+  {
+    digitalWrite(relay3, HIGH);
+    //Serial.println("high");
+  }
+  else 
+  {
+    digitalWrite(relay3, LOW);
+    //Serial.println("low");
+  }
+
   // Get the data for time, output, relay state and input, and check if the system has reach steady state
   if ((currentMillis - lastSaveTime) >= 1000) 
   {
-    if(abs(Input1 - Setpoint)<=5 && abs(Input2 - Setpoint)<=5 && abs(Input1 - Input2)<=5)
+    if(abs(Input1 - Setpoint)<=5  && abs(Input2 - Setpoint)<=5 && abs(Input1 - Input2)<=5)
     {
       steadyCount++;
     }
@@ -123,20 +138,27 @@ void RunPID(int Setpoint)
     }
 
     //Serial.print("Temperature: ");
-    Serial.print(millis());
-    Serial.print("  ");
-    Serial.print(Output1);
-    Serial.print("  ");
-    Serial.print(digitalRead(relay1));
-    Serial.print("  ");
-    Serial.print(Input1);
-    Serial.print("  ");
+    // Serial.print(millis());
+    // Serial.print("  ");
+    // Serial.print(Output1);
+    // Serial.print("  ");
+    // Serial.print(digitalRead(relay1));
+    // Serial.print("  ");
+    // Serial.print(Input1);
+    // Serial.print("  ");
 
-    Serial.print(Output2);
-    Serial.print("  ");
-    Serial.print(digitalRead(relay2));
-    Serial.print("  ");
-    Serial.println(Input2);
+    // Serial.print(Output2);
+    // Serial.print("  ");
+    // Serial.print(digitalRead(relay2));
+    // Serial.print("  ");
+    // Serial.print(Input2);
+    // Serial.print("  ");
+
+    // Serial.print(Output3);
+    // Serial.print("  ");
+    // Serial.print(digitalRead(relay3));
+    // Serial.print("  ");
+    // Serial.println(Input3);
 
     lastSaveTime = currentMillis;
   }

@@ -1,8 +1,8 @@
 #include "MainStepper.h"
 
 // Define variables
-double pulsePerRev = 200;
-double rpm = 30;
+double pulsePerRev = 40000;
+double rpm = 5000;
 unsigned long previousTime = 0;
 
 // Get pulse period

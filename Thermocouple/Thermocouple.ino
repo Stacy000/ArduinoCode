@@ -11,8 +11,8 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Serial.println(analogRead(A2));
-   val = analogRead(A0);  
+  Serial.println(analogRead(A0));
+   //val = analogRead(A0);  
    float voltage= val * (5 / 1023.0);   
    //Serial.println(voltage);
    float temp=(voltage - 1.21) / 0.005;

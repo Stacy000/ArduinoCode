@@ -53,8 +53,19 @@ extern int setPointPETG;
 extern int setPointPLA;
 extern int setPointPETE;
 
+extern int setPointABSRaw;
+extern int setPointPETGRaw;
+extern int setPointPLARaw;
+extern int setPointPETERaw;
+
 // Get the heater variables
 extern bool steadyState;
+extern PID PID1;
+extern PID PID2;
+extern PID PID3;
+extern double Setpoint1;
+extern double Setpoint2;
+extern double Setpoint3;
 
 extern int rpm;
 extern int pulsePerRev;
@@ -75,7 +86,7 @@ void setup()
   Serial.begin(4800);
 
   // Set the reference voltage of analog pin to 2.56V
-  analogReference(INTERNAL2V56);
+  analogReference(DEFAULT);
 
   // Set the rotary encoder
   pinMode(encoderCLK, INPUT_PULLUP);
@@ -145,6 +156,7 @@ void setup()
 
   // Setup the parameters for PID controller
   SetUpPID();
+
   //Set up the lcd
   lcd.init();
   lcd.backlight();
@@ -154,7 +166,7 @@ void setup()
   lcd.print("WELCOME");
   lcd.setCursor(0,1); 
   lcd.print("Test Version"); 
-  delay(5000); //wait 2 sec
+  delay(2000); //wait 2 sec
 
   // Clear the LED for next page
   lcd.clear();
@@ -240,9 +252,10 @@ void loop() {
     DisplayHeating();
 
     // The extruder starts to spool filament when the temperature inside the extruder reaches steady state
-    if(steadyState == true)
+    if(steadyState == false)
     {
       state = 3;
+      TurnOffHeater();
       lcd.clear();
       spoolingTimer.start();
     }
@@ -251,22 +264,41 @@ void loop() {
   // Start heating up the extruder to the set point temperature using PI controller
   if(startPID == true)
   {
+    if(GetTemperature()>=300)
+    {
+      startPID = false;
+      digitalWrite(red, HIGH);
+    }
+    
     switch(currentSelection)
     {
       case 0:
-      RunPID(setPointABS);
+      Setpoint1 = setPointABSRaw - 50;
+      Setpoint2 = setPointABSRaw;
+      Setpoint3 = setPointABSRaw - 10;
+
+      RunPID(setPointABSRaw);
       break;
       
       case 1:
-      RunPID(setPointPETG);
+      Setpoint1 = setPointPETGRaw - 30;
+      Setpoint2 = setPointPETGRaw;
+      Setpoint3 = setPointPETGRaw - 10;
+      RunPID(setPointPETGRaw);
       break;
 
       case 2:
-      RunPID(setPointPLA);
+      Setpoint1 = setPointPLARaw - 30;
+      Setpoint2 = setPointPLARaw;
+      Setpoint3 = setPointPLARaw - 10;
+      RunPID(setPointPLARaw);
       break;
 
       case 3:
-      RunPID(setPointPETE);
+      Setpoint1 = setPointPETERaw - 30;
+      Setpoint2 = setPointPETERaw;
+      Setpoint3 = setPointPETERaw - 10;
+      RunPID(setPointPETERaw);
       break;
     }
   }
